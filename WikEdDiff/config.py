@@ -2,7 +2,9 @@
 
 import re
 
-from utils import dotdictify
+from .utils import dotdictify
+
+__all__ = ["WikEdDiffConfig"]
 
 ##
 ## Configuration and customization settings.

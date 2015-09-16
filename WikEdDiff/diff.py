@@ -135,10 +135,12 @@ import itertools
 import copy
 import logging
 
-from utils import *
-from data_structures import *
+from .utils import *
+from .data_structures import *
 
 logger = logging.getLogger(__name__)
+
+__all__ = ["WikEdDiff"]
 
 ##
 ## wikEd diff main class.
@@ -2838,49 +2840,3 @@ class WikEdDiffText:
                                                                    self.parent.debugShortenText( tokens[i].token ))
             i = tokens[i].next
         logger.debug( name + ':\n' + dump )
-
-if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) != 3:
-        print("usage: {} old_file new_file".format(sys.argv[0]))
-        sys.exit(1)
-
-    def setTerminalLogging():
-        # create console handler and set level
-        handler = logging.StreamHandler()
-
-        # create formatter
-        formatter = logging.Formatter("{message}", style="{")
-        handler.setFormatter(formatter)
-
-        # add the handler to the root logger
-        logger = logging.getLogger()
-        logger.addHandler(handler)
-
-        return logger
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    setTerminalLogging()
-
-    f1 = open(sys.argv[1], "r")
-    f2 = open(sys.argv[2], "r")
-
-    from config import *
-    from HtmlFormatter import *
-
-    config = WikEdDiffConfig()
-    wd = WikEdDiff(config)
-    error, fragments = wd.diff(f1.read(), f2.read())
-
-    # Create HTML formatted diff code from diff fragments
-    formatter = HtmlFormatter()
-    diff_html = formatter.getDiffHtml( fragments, error, coloredBlocks=True )
-
-    # Create standalone HTML page
-    full_html = formatter.fullHtmlTemplate.format(title=sys.argv[2], script=formatter.javascript, stylesheet=formatter.stylesheet, diff=diff_html)
-
-    out = open("output.html", "w")
-    out.write(full_html)

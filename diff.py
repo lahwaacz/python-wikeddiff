@@ -5,8 +5,8 @@ WikEdDiff is a visual inline-style difference engine with block move support.
 
 The original wikEdDiff is an improved JavaScript diff library that returns
 html/css-formatted new text version with highlighted deletions, insertions,
-and block moves. It is also available as a MediaWiki extension, wich is a
-one-to-one synced port with changes and fixes are applied to both versions.
+and block moves. It is also available as a MediaWiki extension, which is a
+one-to-one synced port with changes and fixes applied to both versions.
 
  - JavaScript library (mirror): https://en.wikipedia.org/wiki/User:Cacycle/diff
  - JavaScript online tool: http://cacycle.altervista.org/wikEd-diff-tool.html

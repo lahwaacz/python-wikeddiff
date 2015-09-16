@@ -137,7 +137,6 @@ import logging
 
 from utils import *
 from data_structures import *
-from config import *
 
 logger = logging.getLogger(__name__)
 
@@ -151,8 +150,7 @@ class WikEdDiff:
     ##
     ## Constructor, initialize settings.
     ##
-    ## @param[in] object wikEdDiffConfig Custom customization settings
-    ## @param[out] object config Settings
+    ## @param WikEdDiffConfig config Custom customization settings
     ##
     def __init__(self, config):
 
@@ -209,7 +207,6 @@ class WikEdDiff:
     ## @param string newString New text version
     ## @param[out] array fragment
     ##   Diff fragment list ready for markup, abstraction layer for customized diffs
-    ## @param[out] string html Html code of diff
     ## @return string Html code of diff
     ##
     def diff( self, oldString, newString ):
@@ -2732,7 +2729,7 @@ class WikEdDiff:
 
 
     ##
-    ## Dump blocks object to browser console.
+    ## Dump blocks object to logger.
     ##
     ## @param string name Block name
     ## @param[in] array blocks Blocks table object
@@ -2753,7 +2750,7 @@ class WikEdDiff:
 
 
     ##
-    ## Dump groups object to browser console.
+    ## Dump groups object to logger.
     ##
     ## @param string name Group name
     ## @param[in] array groups Groups table object
@@ -2772,7 +2769,7 @@ class WikEdDiff:
 
 
     ##
-    ## Dump fragments array to browser console.
+    ## Dump fragments array to logger.
     ##
     ## @param string name Fragments name
     ## @param[in] array fragments Fragments array
@@ -2788,7 +2785,7 @@ class WikEdDiff:
 
 
     ##
-    ## Dump borders array to browser console.
+    ## Dump borders array to logger.
     ##
     ## @param string name Arrays name
     ## @param[in] array border Match border array
@@ -2834,7 +2831,7 @@ class WikEdDiff:
 
     ##
     ## Stop timer 'label', analogous to JavaScript console timer.
-    ## Logs time in milliseconds since start to browser console.
+    ## Prints time in seconds since start to the logger.
     ## Usage: self.timeEnd( 'label' )
     ##
     ## @param string label Timer label
@@ -2855,7 +2852,7 @@ class WikEdDiff:
 
 
     ##
-    ## Log recursion timer results to browser console.
+    ## Print recursion timer results to logger.
     ## Usage: self.timeRecursionEnd()
     ##
     ## @param string text Text label for output
@@ -2878,7 +2875,7 @@ class WikEdDiff:
 
 
     ##
-    ## Log variable values to debug console.
+    ## Print variable values to debug console.
     ## Usage: self.debug( 'var', var )
     ##
     ## @param string name Object identifier
@@ -3081,7 +3078,7 @@ class WikEdDiffText:
 
 
     ##
-    ## Dump tokens object to browser console.
+    ## Dump tokens object to logger.
     ##
     ## @param string name Text name
     ## @param[in] int first, last First and last index of tokens list
@@ -3128,6 +3125,8 @@ if __name__ == "__main__":
 
     f1 = open(sys.argv[1], "r")
     f2 = open(sys.argv[2], "r")
+
+    from config import *
 
     config = WikEdDiffConfig()
     wd = WikEdDiff(config)

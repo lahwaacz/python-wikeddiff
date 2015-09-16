@@ -161,34 +161,34 @@ class WikEdDiff:
         # Internal data structures.
 
         # @var WikEdDiffText newText New text version object with text and token list
-        self.newText = None;
+        self.newText = None
 
         # @var WikEdDiffText oldText Old text version object with text and token list
-        self.oldText = None;
+        self.oldText = None
 
         # @var Symbols symbols Symbols table for whole text at all refinement levels
         self.symbols = Symbols(token=[], hashTable={}, linked=False)
 
         # @var array bordersDown Matched region borders downwards
-        self.bordersDown = [];
+        self.bordersDown = []
 
         # @var array bordersUp Matched region borders upwards
-        self.bordersUp = [];
+        self.bordersUp = []
 
         # @var array blocks Block data (consecutive text tokens) in new text order
-        self.blocks = [];
+        self.blocks = []
 
         # @var int maxWords Maximal detected word count of all linked blocks
-        self.maxWords = 0;
+        self.maxWords = 0
 
         # @var array groups Section blocks that are consecutive in old text order
-        self.groups = [];
+        self.groups = []
 
         # @var array sections Block sections with no block move crosses outside a section
-        self.sections = [];
+        self.sections = []
 
         # @var object timer Debug timer array: string 'label' => float milliseconds.
-        self.timer = {};
+        self.timer = {}
 
         # @var array recursionTimer Count time spent in recursion level in milliseconds.
         self.recursionTimer = {}
@@ -196,13 +196,13 @@ class WikEdDiff:
         # Output data.
 
         # @var bool error Unit tests have detected a diff error
-        self.error = False;
+        self.error = False
 
         # @var array fragments Diff fragment list for markup, abstraction layer for customization
-        self.fragments = [];
+        self.fragments = []
 
         # @var string html Html code of diff
-        self.html = '';
+        self.html = ''
 
 
     ##
@@ -219,9 +219,9 @@ class WikEdDiff:
 
         if self.config.timer is True:
             # Start total timer
-            self.time( 'total' );
+            self.time( 'total' )
             # Start diff timer
-            self.time( 'diff' );
+            self.time( 'diff' )
 
         # Reset error flag
         self.error = False
@@ -242,7 +242,7 @@ class WikEdDiff:
                         self.config.htmlCode.noChangeStart + \
                         self.htmlEscape( self.config.msg['wiked-diff-empty'] ) + \
                         self.config.htmlCode.noChangeEnd + \
-                        self.config.htmlCode.containerEnd;
+                        self.config.htmlCode.containerEnd
             return self.html
 
         # Trap trivial changes: old text deleted
@@ -253,7 +253,7 @@ class WikEdDiff:
                         self.htmlEscape( self.newText.text ) + \
                         self.config.htmlCode.insertEnd + \
                         self.config.htmlCode.fragmentEnd + \
-                        self.config.htmlCode.containerEnd;
+                        self.config.htmlCode.containerEnd
             return self.html
 
         # Trap trivial changes: new text deleted
@@ -264,116 +264,116 @@ class WikEdDiff:
                         self.htmlEscape( self.oldText.text ) + \
                         self.config.htmlCode.deleteEnd + \
                         self.config.htmlCode.fragmentEnd + \
-                        self.config.htmlCode.containerEnd;
-            return self.html;
+                        self.config.htmlCode.containerEnd
+            return self.html
 
         # Split new and old text into paragraps
         if self.config.timer is True:
-            self.time( 'paragraph split' );
-        self.newText.splitText( 'paragraph' );
-        self.oldText.splitText( 'paragraph' );
+            self.time( 'paragraph split' )
+        self.newText.splitText( 'paragraph' )
+        self.oldText.splitText( 'paragraph' )
         if self.config.timer is True:
-            self.timeEnd( 'paragraph split' );
+            self.timeEnd( 'paragraph split' )
 
         # Calculate diff
-        self.calculateDiff( 'line' );
+        self.calculateDiff( 'line' )
 
         # Refine different paragraphs into lines
         if self.config.timer is True:
-            self.time( 'line split' );
-        self.newText.splitRefine( 'line' );
-        self.oldText.splitRefine( 'line' );
+            self.time( 'line split' )
+        self.newText.splitRefine( 'line' )
+        self.oldText.splitRefine( 'line' )
         if self.config.timer is True:
-            self.timeEnd( 'line split' );
+            self.timeEnd( 'line split' )
 
         # Calculate refined diff
-        self.calculateDiff( 'line' );
+        self.calculateDiff( 'line' )
 
         # Refine different lines into sentences
         if self.config.timer is True:
-            self.time( 'sentence split' );
-        self.newText.splitRefine( 'sentence' );
-        self.oldText.splitRefine( 'sentence' );
+            self.time( 'sentence split' )
+        self.newText.splitRefine( 'sentence' )
+        self.oldText.splitRefine( 'sentence' )
         if self.config.timer is True:
-            self.timeEnd( 'sentence split' );
+            self.timeEnd( 'sentence split' )
 
         # Calculate refined diff
-        self.calculateDiff( 'sentence' );
+        self.calculateDiff( 'sentence' )
 
         # Refine different sentences into chunks
         if self.config.timer is True:
-            self.time( 'chunk split' );
-        self.newText.splitRefine( 'chunk' );
-        self.oldText.splitRefine( 'chunk' );
+            self.time( 'chunk split' )
+        self.newText.splitRefine( 'chunk' )
+        self.oldText.splitRefine( 'chunk' )
         if self.config.timer is True:
-            self.timeEnd( 'chunk split' );
+            self.timeEnd( 'chunk split' )
 
         # Calculate refined diff
-        self.calculateDiff( 'chunk' );
+        self.calculateDiff( 'chunk' )
 
         # Refine different chunks into words
         if self.config.timer is True:
-            self.time( 'word split' );
-        self.newText.splitRefine( 'word' );
-        self.oldText.splitRefine( 'word' );
+            self.time( 'word split' )
+        self.newText.splitRefine( 'word' )
+        self.oldText.splitRefine( 'word' )
         if self.config.timer is True:
-            self.timeEnd( 'word split' );
+            self.timeEnd( 'word split' )
 
         # Calculate refined diff information with recursion for unresolved gaps
-        self.calculateDiff( 'word', True );
+        self.calculateDiff( 'word', True )
 
         # Slide gaps
         if self.config.timer is True:
-            self.time( 'word slide' );
-        self.slideGaps( self.newText, self.oldText );
-        self.slideGaps( self.oldText, self.newText );
+            self.time( 'word slide' )
+        self.slideGaps( self.newText, self.oldText )
+        self.slideGaps( self.oldText, self.newText )
         if self.config.timer is True:
-            self.timeEnd( 'word slide' );
+            self.timeEnd( 'word slide' )
 
         # Split tokens into chars
         if self.config.charDiff is True:
             # Split tokens into chars in selected unresolved gaps
             if self.config.timer is True:
-                self.time( 'character split' );
-            self.splitRefineChars();
+                self.time( 'character split' )
+            self.splitRefineChars()
             if self.config.timer is True:
-                self.timeEnd( 'character split' );
+                self.timeEnd( 'character split' )
 
             # Calculate refined diff information with recursion for unresolved gaps
-            self.calculateDiff( 'character', True );
+            self.calculateDiff( 'character', True )
 
             # Slide gaps
             if self.config.timer is True:
-                self.time( 'character slide' );
-            self.slideGaps( self.newText, self.oldText );
-            self.slideGaps( self.oldText, self.newText );
+                self.time( 'character slide' )
+            self.slideGaps( self.newText, self.oldText )
+            self.slideGaps( self.oldText, self.newText )
             if self.config.timer is True:
-                self.timeEnd( 'character slide' );
+                self.timeEnd( 'character slide' )
 
         # Free memory
-        self.symbols = Symbols(token=[], hashTable={}, linked=False);
+        self.symbols = Symbols(token=[], hashTable={}, linked=False)
         self.bordersDown.clear()
         self.bordersUp.clear()
         self.newText.words.clear()
         self.oldText.words.clear()
 
         # Enumerate token lists
-        self.newText.enumerateTokens();
-        self.oldText.enumerateTokens();
+        self.newText.enumerateTokens()
+        self.oldText.enumerateTokens()
 
         # Detect moved blocks
         if self.config.timer is True:
-            self.time( 'blocks' );
-        self.detectBlocks();
+            self.time( 'blocks' )
+        self.detectBlocks()
         if self.config.timer is True:
-            self.timeEnd( 'blocks' );
+            self.timeEnd( 'blocks' )
 
         # Free memory
         self.newText.tokens.clear()
         self.oldText.tokens.clear()
 
         # Assemble blocks into fragment table
-        self.getDiffFragments();
+        self.getDiffFragments()
 
         # Free memory
         self.blocks.clear()
@@ -382,40 +382,40 @@ class WikEdDiff:
 
         # Stop diff timer
         if self.config.timer is True:
-            self.timeEnd( 'diff' );
+            self.timeEnd( 'diff' )
 
         # Unit tests
         if self.config.unitTesting is True:
             # Test diff to test consistency between input and output
             if self.config.timer is True:
-                self.time( 'unit tests' );
-            self.unitTests();
+                self.time( 'unit tests' )
+            self.unitTests()
             if self.config.timer is True:
-                self.timeEnd( 'unit tests' );
+                self.timeEnd( 'unit tests' )
 
         # Debug log
         if self.config.debug is True:
-            self.debugFragments( 'Fragments before clipping' );
+            self.debugFragments( 'Fragments before clipping' )
 
         # Clipping
         if self.config.fullDiff is False:
             # Clipping unchanged sections from unmoved block text
             if self.config.timer is True:
-                self.time( 'clip' );
-            self.clipDiffFragments();
+                self.time( 'clip' )
+            self.clipDiffFragments()
             if self.config.timer is True:
-                self.timeEnd( 'clip' );
+                self.timeEnd( 'clip' )
 
         # Debug log
         if self.config.debug is True:
-            self.debugFragments( 'Fragments' );
+            self.debugFragments( 'Fragments' )
 
         # Create html formatted diff code from diff fragments
         if self.config.timer is True:
-            self.time( 'html' );
-        self.getDiffHtml();
+            self.time( 'html' )
+        self.getDiffHtml()
         if self.config.timer is True:
-            self.timeEnd( 'html' );
+            self.timeEnd( 'html' )
 
         # Free memory
         self.fragments.clear()
@@ -426,18 +426,18 @@ class WikEdDiff:
                         self.config.htmlCode.noChangeStart + \
                         self.htmlEscape( self.config.msg['wiked-diff-empty'] ) + \
                         self.config.htmlCode.noChangeEnd + \
-                        self.config.htmlCode.containerEnd;
+                        self.config.htmlCode.containerEnd
 
         # Add error indicator
         if self.error is True:
-            self.html = self.config.htmlCode.errorStart + self.html + self.config.htmlCode.errorEnd;
+            self.html = self.config.htmlCode.errorStart + self.html + self.config.htmlCode.errorEnd
             logger.error("The error flag is True")
 
         # Stop total timer
         if self.config.timer is True:
-            self.timeEnd( 'total' );
+            self.timeEnd( 'total' )
 
-        return self.html;
+        return self.html
 
 
     ##
@@ -458,16 +458,16 @@ class WikEdDiff:
         # Find corresponding gaps.
 
         # Cycle through new text tokens list
-        gaps = [];
-        gap = None;
-        i = self.newText.first;
-        j = self.oldText.first;
+        gaps = []
+        gap = None
+        i = self.newText.first
+        j = self.oldText.first
         while i is not None:
             # Get token links
-            newLink = self.newText.tokens[i].link;
-            oldLink = None;
+            newLink = self.newText.tokens[i].link
+            oldLink = None
             if j is not None:
-                oldLink = self.oldText.tokens[j].link;
+                oldLink = self.oldText.tokens[j].link
 
             # Start of gap in new and old
             if gap is None and newLink is None and oldLink is None:
@@ -484,74 +484,74 @@ class WikEdDiff:
 
             # Count chars and tokens in gap
             elif gap is not None and newLink is None:
-                gaps[gap].newLast = i;
-                gaps[gap].newTokens += 1;
+                gaps[gap].newLast = i
+                gaps[gap].newTokens += 1
 
             # Gap ended
             elif gap is not None and newLink is not None:
-                gap = None;
+                gap = None
 
             # Next list elements
             if newLink is not None:
-                j = self.oldText.tokens[newLink].next;
-            i = self.newText.tokens[i].next;
+                j = self.oldText.tokens[newLink].next
+            i = self.newText.tokens[i].next
 
         # Cycle through gaps and add old text gap data
         for gap in gaps:
             # Cycle through old text tokens list
-            j = gap.oldFirst;
+            j = gap.oldFirst
             while (
                     j is not None and
                     self.oldText.tokens[j] is not None and
                     self.oldText.tokens[j].link is None
                     ):
                 # Count old chars and tokens in gap
-                gap.oldLast = j;
-                gap.oldTokens += 1;
+                gap.oldLast = j
+                gap.oldTokens += 1
 
-                j = self.oldText.tokens[j].next;
+                j = self.oldText.tokens[j].next
 
         # Select gaps of identical token number and strong similarity of all tokens.
         for gap in gaps:
-            charSplit = True;
+            charSplit = True
 
             # Not same gap length
             if gap.newTokens != gap.oldTokens:
                 # One word became separated by space, dash, or any string
                 if gap.newTokens == 1 and gap.oldTokens == 3:
-                    token = self.newText.tokens[ gap.newFirst ].token;
-                    tokenFirst = self.oldText.tokens[ gap.oldFirst ].token;
-                    tokenLast = self.oldText.tokens[ gap.oldLast ].token;
+                    token = self.newText.tokens[ gap.newFirst ].token
+                    tokenFirst = self.oldText.tokens[ gap.oldFirst ].token
+                    tokenLast = self.oldText.tokens[ gap.oldLast ].token
                     if (
                             token[ tokenFirst ] != 0 or
                             token[ tokenLast ] != len(token) - len(tokenLast)
                             ):
-                        continue;
+                        continue
                 elif gap.oldTokens == 1 and gap.newTokens == 3:
-                    token = self.oldText.tokens[ gap.oldFirst ].token;
-                    tokenFirst = self.newText.tokens[ gap.newFirst ].token;
-                    tokenLast = self.newText.tokens[ gap.newLast ].token;
+                    token = self.oldText.tokens[ gap.oldFirst ].token
+                    tokenFirst = self.newText.tokens[ gap.newFirst ].token
+                    tokenLast = self.newText.tokens[ gap.newLast ].token
                     if not token.startswith(tokenFirst) or not token.endswith(tokenLast):
-                        continue;
+                        continue
                 else:
-                    continue;
-                gap.charSplit = True;
+                    continue
+                gap.charSplit = True
 
             # Cycle through new text tokens list and set charSplit
             else:
-                i = gap.newFirst;
-                j = gap.oldFirst;
+                i = gap.newFirst
+                j = gap.oldFirst
                 while i is not None:
-                    newToken = self.newText.tokens[i].token;
-                    oldToken = self.oldText.tokens[j].token;
+                    newToken = self.newText.tokens[i].token
+                    oldToken = self.oldText.tokens[j].token
 
                     # Get shorter and longer token
                     if len(newToken) < len(oldToken):
-                        shorterToken = newToken;
-                        longerToken = oldToken;
+                        shorterToken = newToken
+                        longerToken = oldToken
                     else:
-                        shorterToken = oldToken;
-                        longerToken = newToken;
+                        shorterToken = oldToken
+                        longerToken = newToken
 
                     # Not same token length
                     if len(newToken) != len(oldToken):
@@ -559,21 +559,21 @@ class WikEdDiff:
                         # Test for addition or deletion of internal string in tokens
 
                         # Find number of identical chars from left
-                        left = 0;
+                        left = 0
                         while left < len(shorterToken):
                             if newToken[ left ] != oldToken[ left ]:
-                                break;
-                            left += 1;
+                                break
+                            left += 1
 
                         # Find number of identical chars from right
-                        right = 0;
+                        right = 0
                         while right < len(shorterToken):
                             if (
                                     newToken[ len(newToken) - 1 - right ] !=
                                     oldToken[ len(oldToken) - 1 - right ]
                                     ):
-                                break;
-                            right += 1;
+                                break
+                            right += 1
 
                         # No simple insertion or deletion of internal string
                         if left + right != len(shorterToken):
@@ -583,37 +583,37 @@ class WikEdDiff:
                                 # Same text at start or end shorter than different text
                                 if left < len(shorterToken) / 2 and right < len(shorterToken) / 2:
                                     # Do not split into chars in this gap
-                                    charSplit = False;
-                                    break;
+                                    charSplit = False
+                                    break
 
                     # Same token length
                     elif newToken != oldToken:
                         # Tokens less than 50 % identical
-                        ident = 0;
+                        ident = 0
                         for pos in range(len(shorterToken)):
                             if shorterToken[ pos ] == longerToken[ pos ]:
-                                ident += 1;
+                                ident += 1
                         if ident / len(shorterToken) < 0.49:
                             # Do not split into chars this gap
-                            charSplit = False;
-                            break;
+                            charSplit = False
+                            break
 
                     # Next list elements
                     if i == gap.newLast:
-                        break;
-                    i = self.newText.tokens[i].next;
-                    j = self.oldText.tokens[j].next;
-                gap.charSplit = charSplit;
+                        break
+                    i = self.newText.tokens[i].next
+                    j = self.oldText.tokens[j].next
+                gap.charSplit = charSplit
 
         # Refine words into chars in selected gaps.
         for gap in gaps:
             if gap.charSplit is True:
 
                 # Cycle through new text tokens list, link spaces, and split into chars
-                i = gap.newFirst;
-                j = gap.oldFirst;
-                newGapLength = i - gap.newLast;
-                oldGapLength = j - gap.oldLast;
+                i = gap.newFirst
+                j = gap.oldFirst
+                newGapLength = i - gap.newLast
+                oldGapLength = j - gap.oldLast
                 while i is not None or j is not None:
 
                     # Link identical tokens (spaces) to keep char refinement to words
@@ -621,25 +621,25 @@ class WikEdDiff:
                             newGapLength == oldGapLength and
                             self.newText.tokens[i].token == self.oldText.tokens[j].token
                             ):
-                        self.newText.tokens[i].link = j;
-                        self.oldText.tokens[j].link = i;
+                        self.newText.tokens[i].link = j
+                        self.oldText.tokens[j].link = i
 
                     # Refine words into chars
                     else:
                         if i is not None:
-                            self.newText.splitText( 'character', i );
+                            self.newText.splitText( 'character', i )
                         if j is not None:
-                            self.oldText.splitText( 'character', j );
+                            self.oldText.splitText( 'character', j )
 
                     # Next list elements
                     if i == gap.newLast:
-                        i = None;
+                        i = None
                     if j == gap.oldLast:
-                        j = None;
+                        j = None
                     if i is not None:
-                        i = self.newText.tokens[i].next;
+                        i = self.newText.tokens[i].next
                     if j is not None:
-                        j = self.oldText.tokens[j].next;
+                        j = self.oldText.tokens[j].next
 
 
     ##
@@ -649,26 +649,26 @@ class WikEdDiff:
     ##
     def slideGaps( self, text, textLinked ):
 
-        regExpSlideBorder = self.config.regExp.slideBorder;
-        regExpSlideStop = self.config.regExp.slideStop;
+        regExpSlideBorder = self.config.regExp.slideBorder
+        regExpSlideStop = self.config.regExp.slideStop
 
         # Cycle through tokens list
-        i = text.first;
-        gapStart = None;
+        i = text.first
+        gapStart = None
         while i is not None:
 
             # Remember gap start
             if gapStart is None and text.tokens[i].link is None:
-                gapStart = i;
+                gapStart = i
 
             # Find gap end
             elif gapStart is not None and text.tokens[i].link is not None:
-                gapFront = gapStart;
-                gapBack = text.tokens[i].prev;
+                gapFront = gapStart
+                gapBack = text.tokens[i].prev
 
                 # Slide down as deep as possible
-                front = gapFront;
-                back = text.tokens[gapBack].next;
+                front = gapFront
+                back = text.tokens[gapBack].next
                 if (
                         front is not None and
                         back is not None and
@@ -676,21 +676,21 @@ class WikEdDiff:
                         text.tokens[back].link is not None and
                         text.tokens[front].token == text.tokens[back].token
                         ):
-                    text.tokens[front].link = text.tokens[back].link;
-                    textLinked.tokens[ text.tokens[front].link ].link = front;
+                    text.tokens[front].link = text.tokens[back].link
+                    textLinked.tokens[ text.tokens[front].link ].link = front
                     text.tokens[back].link = None
 
-                    gapFront = text.tokens[gapFront].next;
-                    gapBack = text.tokens[gapBack].next;
+                    gapFront = text.tokens[gapFront].next
+                    gapBack = text.tokens[gapBack].next
 
-                    front = text.tokens[front].next;
-                    back = text.tokens[back].next;
+                    front = text.tokens[front].next
+                    back = text.tokens[back].next
 
                 # Test slide up, remember last line break or word border
-                front = text.tokens[gapFront].prev;
-                back = gapBack;
-                gapFrontBlankTest = regExpSlideBorder.search( text.tokens[gapFront].token );
-                frontStop = front;
+                front = text.tokens[gapFront].prev
+                back = gapBack
+                gapFrontBlankTest = regExpSlideBorder.search( text.tokens[gapFront].token )
+                frontStop = front
                 if text.tokens[back].link is None:
                     while (
                             front is not None and
@@ -701,19 +701,19 @@ class WikEdDiff:
                         if front is not None:
                             # Stop at line break
                             if regExpSlideStop.search( text.tokens[front].token ) is True:
-                                frontStop = front;
-                                break;
+                                frontStop = front
+                                break
 
 # TODO: does this work? (comparison of re.match objects)
                             # Stop at first word border (blank/word or word/blank)
                             if regExpSlideBorder.search( text.tokens[front].token ) != gapFrontBlankTest:
-                                frontStop = front;
-                        front = text.tokens[front].prev;
-                        back = text.tokens[back].prev;
+                                frontStop = front
+                        front = text.tokens[front].prev
+                        back = text.tokens[back].prev
 
                 # Actually slide up to stop
-                front = text.tokens[gapFront].prev;
-                back = gapBack;
+                front = text.tokens[gapFront].prev
+                back = gapBack
                 while (
                         front is not None and
                         back is not None and
@@ -722,14 +722,14 @@ class WikEdDiff:
                         text.tokens[back].link is None and
                         text.tokens[front].token == text.tokens[back].token
                         ):
-                    text.tokens[back].link = text.tokens[front].link;
-                    textLinked.tokens[ text.tokens[back].link ].link = back;
-                    text.tokens[front].link = None;
+                    text.tokens[back].link = text.tokens[front].link
+                    textLinked.tokens[ text.tokens[back].link ].link = back
+                    text.tokens[front].link = None
 
-                    front = text.tokens[front].prev;
-                    back = text.tokens[back].prev;
-                gapStart = None;
-            i = text.tokens[i].next;
+                    front = text.tokens[front].prev
+                    back = text.tokens[back].prev
+                gapStart = None
+            i = text.tokens[i].next
 
 
     ##
@@ -774,71 +774,71 @@ class WikEdDiff:
 
         # Start timers
         if self.config.timer is True and repeating is False and recursionLevel == 0:
-            self.time( level );
+            self.time( level )
         if self.config.timer is True and repeating is False:
-            self.time( level + str(recursionLevel) );
+            self.time( level + str(recursionLevel) )
 
         # Get object symbols table and linked region borders
         if recursionLevel == 0 and repeating is False:
-            symbols = self.symbols;
-            bordersDown = self.bordersDown;
-            bordersUp = self.bordersUp;
+            symbols = self.symbols
+            bordersDown = self.bordersDown
+            bordersUp = self.bordersUp
 
         # Create empty local symbols table and linked region borders arrays
         else:
             symbols = Symbols(token=[], hashTable={}, linked=False)
-            bordersDown = [];
-            bordersUp = [];
+            bordersDown = []
+            bordersUp = []
 
         # Updated versions of linked region borders
-        bordersUpNext = [];
-        bordersDownNext = [];
+        bordersUpNext = []
+        bordersDownNext = []
 
         ##
         ## Pass 1: parse new text into symbol table.
         ##
 
         # Cycle through new text tokens list
-        i = newStart;
+        i = newStart
         while i is not None:
             if self.newText.tokens[i].link is None:
                 # Add new entry to symbol table
-                token = self.newText.tokens[i].token;
+                token = self.newText.tokens[i].token
                 if token not in symbols.hashTable:
-                    symbols.hashTable[token] = len(symbols.token);
+                    symbols.hashTable[token] = len(symbols.token)
                     symbols.token.append( Symbol(
                             newCount=1,
                             oldCount=0,
                             newToken=i,
                             oldToken=None
-                    ) );
+                    ) )
 
                 # Or update existing entry
                 else:
                     # Increment token counter for new text
-                    hashToArray = symbols.hashTable[token];
-                    symbols.token[hashToArray].newCount += 1;
+                    hashToArray = symbols.hashTable[token]
+                    symbols.token[hashToArray].newCount += 1
 
             # Stop after gap if recursing
             elif recursionLevel > 0:
-                break;
+                break
 
             # Get next token
             if up is False:
-                i = self.newText.tokens[i].next;
+                i = self.newText.tokens[i].next
             else:
-                i = self.newText.tokens[i].prev;
+                i = self.newText.tokens[i].prev
 
         ##
         ## Pass 2: parse old text into symbol table.
         ##
 
         # Cycle through old text tokens list
-        j = oldStart;
+        j = oldStart
         while j is not None:
             if self.oldText.tokens[j].link is None:
                 # Add new entry to symbol table
-                token = self.oldText.tokens[j].token;
+                token = self.oldText.tokens[j].token
                 if token not in symbols.hashTable:
                     symbols.hashTable[token] = len(symbols.token)
                     symbols.token.append( Symbol(
@@ -846,26 +846,26 @@ class WikEdDiff:
                             oldCount=1,
                             newToken=None,
                             oldToken=j
-                    ) );
+                    ) )
 
                 # Or update existing entry
                 else:
                     # Increment token counter for old text
-                    hashToArray = symbols.hashTable[token];
-                    symbols.token[hashToArray].oldCount += 1;
+                    hashToArray = symbols.hashTable[token]
+                    symbols.token[hashToArray].oldCount += 1
 
                     # Add token number for old text
-                    symbols.token[hashToArray].oldToken = j;
+                    symbols.token[hashToArray].oldToken = j
 
             # Stop after gap if recursing
             elif recursionLevel > 0:
-                break;
+                break
 
             # Get next token
             if up is False:
-                j = self.oldText.tokens[j].next;
+                j = self.oldText.tokens[j].next
             else:
-                j = self.oldText.tokens[j].prev;
+                j = self.oldText.tokens[j].prev
 
         ##
         ## Pass 3: connect unique tokens.
@@ -875,31 +875,31 @@ class WikEdDiff:
         for symbolToken in symbols.token:
             # Find tokens in the symbol table that occur only once in both versions
             if symbolToken.newCount == 1 and symbolToken.oldCount == 1:
-                newToken = symbolToken.newToken;
-                oldToken = symbolToken.oldToken;
-                newTokenObj = self.newText.tokens[newToken];
-                oldTokenObj = self.oldText.tokens[oldToken];
+                newToken = symbolToken.newToken
+                oldToken = symbolToken.oldToken
+                newTokenObj = self.newText.tokens[newToken]
+                oldTokenObj = self.oldText.tokens[oldToken]
 
                 # Connect from new to old and from old to new
                 if newTokenObj.link is None:
                     # Do not use spaces as unique markers
                     if self.config.regExp.blankOnlyToken.search( newTokenObj.token ):
                         # Link new and old tokens
-                        newTokenObj.link = oldToken;
-                        oldTokenObj.link = newToken;
-                        symbols.linked = True;
+                        newTokenObj.link = oldToken
+                        oldTokenObj.link = newToken
+                        symbols.linked = True
 
                         # Save linked region borders
-                        bordersDown.append( [newToken, oldToken] );
-                        bordersUp.append( [newToken, oldToken] );
+                        bordersDown.append( [newToken, oldToken] )
+                        bordersUp.append( [newToken, oldToken] )
 
                         # Check if token contains unique word
                         if recursionLevel == 0:
-                            unique = False;
+                            unique = False
                             if level == 'character':
-                                unique = True;
+                                unique = True
                             else:
-                                token = newTokenObj.token;
+                                token = newTokenObj.token
                                 wordsGen = itertools.chain( self.config.regExp.countWords.finditer(token),
                                                             self.config.regExp.countChunks.finditer(token) )
                                 words = [match.group() for match in wordsGen]
@@ -907,12 +907,12 @@ class WikEdDiff:
                                 # Unique if longer than min block length
                                 wordsLength = len(words)
                                 if wordsLength >= self.config.blockMinLength:
-                                    unique = True;
+                                    unique = True
 
                                 # Unique if it contains at least one unique word
                                 else:
                                     for i in range(wordsLength):
-                                        word = words[i];
+                                        word = words[i]
 # TODO how to replace Object. ... here?
 #                                        if (
 #                                                self.oldText.words[word] == 1 and
@@ -921,13 +921,13 @@ class WikEdDiff:
 #                                                Object.prototype.hasOwnProperty.call( self.newText.words, word ) is True
 #                                                ):
                                         if self.oldText.words[word] == 1 and self.newText.words[word] == 1:
-                                            unique = True;
-                                            break;
+                                            unique = True
+                                            break
 
                             # Set unique
                             if unique is True:
-                                newTokenObj.unique = True;
-                                oldTokenObj.unique = True;
+                                newTokenObj.unique = True
+                                oldTokenObj.unique = True
 
         # Continue passes only if unique tokens have been linked previously
         if symbols.linked is True:
@@ -938,14 +938,14 @@ class WikEdDiff:
 
             # Cycle through list of linked new text tokens
             for border in bordersDown:
-                i = border[0];
-                j = border[1];
+                i = border[0]
+                j = border[1]
 
                 # Next down
-                iMatch = i;
-                jMatch = j;
-                i = self.newText.tokens[i].next;
-                j = self.oldText.tokens[j].next;
+                iMatch = i
+                jMatch = j
+                i = self.newText.tokens[i].next
+                j = self.oldText.tokens[j].next
 
                 # Cycle through new text list gap region downwards
                 while (
@@ -957,19 +957,19 @@ class WikEdDiff:
 
                     # Connect if same token
                     if self.newText.tokens[i].token == self.oldText.tokens[j].token:
-                        self.newText.tokens[i].link = j;
-                        self.oldText.tokens[j].link = i;
+                        self.newText.tokens[i].link = j
+                        self.oldText.tokens[j].link = i
 
                     # Not a match yet, maybe in next refinement level
                     else:
-                        bordersDownNext.append( [iMatch, jMatch] );
-                        break;
+                        bordersDownNext.append( [iMatch, jMatch] )
+                        break
 
                     # Next token down
-                    iMatch = i;
-                    jMatch = j;
-                    i = self.newText.tokens[i].next;
-                    j = self.oldText.tokens[j].next;
+                    iMatch = i
+                    jMatch = j
+                    i = self.newText.tokens[i].next
+                    j = self.oldText.tokens[j].next
 
             ##
             ## Pass 5: connect adjacent identical tokens upwards.
@@ -977,14 +977,14 @@ class WikEdDiff:
 
             # Cycle through list of connected new text tokens
             for border in bordersUp:
-                i = border[0];
-                j = border[1];
+                i = border[0]
+                j = border[1]
 
                 # Next up
-                iMatch = i;
-                jMatch = j;
-                i = self.newText.tokens[i].prev;
-                j = self.oldText.tokens[j].prev;
+                iMatch = i
+                jMatch = j
+                i = self.newText.tokens[i].prev
+                j = self.oldText.tokens[j].prev
 
                 # Cycle through new text gap region upwards
                 while (
@@ -996,19 +996,19 @@ class WikEdDiff:
 
                     # Connect if same token
                     if self.newText.tokens[i].token == self.oldText.tokens[j].token:
-                        self.newText.tokens[i].link = j;
-                        self.oldText.tokens[j].link = i;
+                        self.newText.tokens[i].link = j
+                        self.oldText.tokens[j].link = i
 
                     # Not a match yet, maybe in next refinement level
                     else:
-                        bordersUpNext.append( [iMatch, jMatch] );
-                        break;
+                        bordersUpNext.append( [iMatch, jMatch] )
+                        break
 
                     # Next token up
-                    iMatch = i;
-                    jMatch = j;
-                    i = self.newText.tokens[i].prev;
-                    j = self.oldText.tokens[j].prev;
+                    iMatch = i
+                    jMatch = j
+                    i = self.newText.tokens[i].prev
+                    j = self.oldText.tokens[j].prev
 
             ##
             ## Connect adjacent identical tokens downwards from text start.
@@ -1018,10 +1018,10 @@ class WikEdDiff:
             # Only for full text diff
             if recursionLevel == 0 and repeating is False:
                 # From start
-                i = self.newText.first;
-                j = self.oldText.first;
-                iMatch = None;
-                jMatch = None;
+                i = self.newText.first
+                j = self.oldText.first
+                iMatch = None
+                jMatch = None
 
                 # Cycle through old text tokens down
                 # Connect identical tokens, stop after first connected token
@@ -1032,20 +1032,20 @@ class WikEdDiff:
                         self.oldText.tokens[j].link is None and
                         self.newText.tokens[i].token == self.oldText.tokens[j].token
                         ):
-                    self.newText.tokens[i].link = j;
-                    self.oldText.tokens[j].link = i;
-                    iMatch = i;
-                    jMatch = j;
-                    i = self.newText.tokens[i].next;
-                    j = self.oldText.tokens[j].next;
+                    self.newText.tokens[i].link = j
+                    self.oldText.tokens[j].link = i
+                    iMatch = i
+                    jMatch = j
+                    i = self.newText.tokens[i].next
+                    j = self.oldText.tokens[j].next
                 if iMatch is not None:
-                    bordersDownNext.append( [iMatch, jMatch] );
+                    bordersDownNext.append( [iMatch, jMatch] )
 
                 # From end
-                i = self.newText.last;
-                j = self.oldText.last;
-                iMatch = None;
-                jMatch = None;
+                i = self.newText.last
+                j = self.oldText.last
+                iMatch = None
+                jMatch = None
 
                 # Cycle through old text tokens up
                 # Connect identical tokens, stop after first connected token
@@ -1056,19 +1056,19 @@ class WikEdDiff:
                         self.oldText.tokens[j].link is None and
                         self.newText.tokens[i].token == self.oldText.tokens[j].token
                         ):
-                    self.newText.tokens[i].link = j;
-                    self.oldText.tokens[j].link = i;
-                    iMatch = i;
-                    jMatch = j;
-                    i = self.newText.tokens[i].prev;
-                    j = self.oldText.tokens[j].prev;
+                    self.newText.tokens[i].link = j
+                    self.oldText.tokens[j].link = i
+                    iMatch = i
+                    jMatch = j
+                    i = self.newText.tokens[i].prev
+                    j = self.oldText.tokens[j].prev
                 if iMatch is not None:
-                    bordersUpNext.append( [iMatch, jMatch] );
+                    bordersUpNext.append( [iMatch, jMatch] )
 
             # Save updated linked region borders to object
             if recursionLevel == 0 and repeating is False:
-                self.bordersDown = bordersDownNext;
-                self.bordersUp = bordersUpNext;
+                self.bordersDown = bordersDownNext
+                self.bordersUp = bordersUpNext
 
             # Merge local updated linked region borders into object
             else:
@@ -1082,8 +1082,8 @@ class WikEdDiff:
             ##
 
             if repeating is False and self.config.repeatedDiff is True:
-                repeat = True;
-                self.calculateDiff( level, recurse, repeat, newStart, oldStart, up, recursionLevel );
+                repeat = True
+                self.calculateDiff( level, recurse, repeat, newStart, oldStart, up, recursionLevel )
 
             ##
             ## Refine by recursively diffing not linked regions with new symbol table.
@@ -1102,12 +1102,12 @@ class WikEdDiff:
 
                 # Cycle through list of linked region borders
                 for border in bordersDownNext:
-                    i = border[0];
-                    j = border[1];
+                    i = border[0]
+                    j = border[1]
 
                     # Next token down
-                    i = self.newText.tokens[i].next;
-                    j = self.oldText.tokens[j].next;
+                    i = self.newText.tokens[i].next
+                    j = self.oldText.tokens[j].next
 
                     # Start recursion at first gap token pair
                     if (
@@ -1116,9 +1116,9 @@ class WikEdDiff:
                             self.newText.tokens[i].link is None and
                             self.oldText.tokens[j].link is None
                             ):
-                        repeat = False;
-                        dirUp = False;
-                        self.calculateDiff( level, recurse, repeat, i, j, dirUp, recursionLevel + 1 );
+                        repeat = False
+                        dirUp = False
+                        self.calculateDiff( level, recurse, repeat, i, j, dirUp, recursionLevel + 1 )
 
                 ##
                 ## Recursively diff gap upwards.
@@ -1126,12 +1126,12 @@ class WikEdDiff:
 
                 # Cycle through list of linked region borders
                 for border in bordersUpNext:
-                    i = border[0];
-                    j = border[1];
+                    i = border[0]
+                    j = border[1]
 
                     # Next token up
-                    i = self.newText.tokens[i].prev;
-                    j = self.oldText.tokens[j].prev;
+                    i = self.newText.tokens[i].prev
+                    j = self.oldText.tokens[j].prev
 
                     # Start recursion at first gap token pair
                     if (
@@ -1140,17 +1140,17 @@ class WikEdDiff:
                             self.newText.tokens[i].link is None and
                             self.oldText.tokens[j].link is None
                             ):
-                        repeat = False;
-                        dirUp = True;
-                        self.calculateDiff( level, recurse, repeat, i, j, dirUp, recursionLevel + 1 );
+                        repeat = False
+                        dirUp = True
+                        self.calculateDiff( level, recurse, repeat, i, j, dirUp, recursionLevel + 1 )
 
         # Stop timers
         if self.config.timer is True and repeating is False:
             self.recursionTimer.setdefault(recursionLevel, 0.0)
-            self.recursionTimer[recursionLevel] += self.timeEnd( level + str(recursionLevel), True );
+            self.recursionTimer[recursionLevel] += self.timeEnd( level + str(recursionLevel), True )
         if self.config.timer is True and repeating is False and recursionLevel == 0:
-            self.timeRecursionEnd( level );
-            self.timeEnd( level );
+            self.timeRecursionEnd( level )
+            self.timeEnd( level )
 
 
     ##
@@ -1172,75 +1172,75 @@ class WikEdDiff:
     def detectBlocks(self):
         # Debug log
         if self.config.debug is True:
-            self.oldText.debugText( 'Old text' );
-            self.newText.debugText( 'New text' );
+            self.oldText.debugText( 'Old text' )
+            self.newText.debugText( 'New text' )
 
         # Collect identical corresponding ('=') blocks from old text and sort by new text
-        self.getSameBlocks();
+        self.getSameBlocks()
 
         # Collect independent block sections with no block move crosses outside a section
-        self.getSections();
+        self.getSections()
 
         # Find groups of continuous old text blocks
-        self.getGroups();
+        self.getGroups()
 
         # Set longest sequence of increasing groups in sections as fixed (not moved)
-        self.setFixed();
+        self.setFixed()
 
         # Convert groups to insertions/deletions if maximum block length is too short
         # Only for more complex texts that actually have blocks of minimum block length
-        unlinkCount = 0;
+        unlinkCount = 0
         if (
                 self.config.unlinkBlocks is True and
                 self.config.blockMinLength > 0 and
                 self.maxWords >= self.config.blockMinLength
                 ):
             if self.config.timer is True:
-                self.time( 'total unlinking' );
+                self.time( 'total unlinking' )
 
             # Repeat as long as unlinking is possible
-            unlinked = True;
+            unlinked = True
             while unlinked is True and unlinkCount < self.config.unlinkMax:
                 # Convert '=' to '+'/'-' pairs
-                unlinked = self.unlinkBlocks();
+                unlinked = self.unlinkBlocks()
 
                 # Start over after conversion
                 if unlinked is True:
-                    unlinkCount += 1;
-                    self.slideGaps( self.newText, self.oldText );
-                    self.slideGaps( self.oldText, self.newText );
+                    unlinkCount += 1
+                    self.slideGaps( self.newText, self.oldText )
+                    self.slideGaps( self.oldText, self.newText )
 
                     # Repeat block detection from start
-                    self.maxWords = 0;
-                    self.getSameBlocks();
-                    self.getSections();
-                    self.getGroups();
-                    self.setFixed();
+                    self.maxWords = 0
+                    self.getSameBlocks()
+                    self.getSections()
+                    self.getGroups()
+                    self.setFixed()
 
             if self.config.timer is True:
-                self.timeEnd( 'total unlinking' );
+                self.timeEnd( 'total unlinking' )
 
         # Collect deletion ('-') blocks from old text
-        self.getDelBlocks();
+        self.getDelBlocks()
 
         # Position '-' blocks into new text order
-        self.positionDelBlocks();
+        self.positionDelBlocks()
 
         # Collect insertion ('+') blocks from new text
-        self.getInsBlocks();
+        self.getInsBlocks()
 
         # Set group numbers of '+' blocks
-        self.setInsGroups();
+        self.setInsGroups()
 
         # Mark original positions of moved groups
-        self.insertMarks();
+        self.insertMarks()
 
         # Debug log
         if self.config.timer is True or self.config.debug is True:
-            logger.debug( 'Unlink count: {}'.format(unlinkCount) );
+            logger.debug( 'Unlink count: {}'.format(unlinkCount) )
         if self.config.debug is True:
-            self.debugGroups( 'Groups' );
-            self.debugBlocks( 'Blocks' );
+            self.debugGroups( 'Groups' )
+            self.debugBlocks( 'Blocks' )
 
 
     ##
@@ -1252,38 +1252,38 @@ class WikEdDiff:
     def getSameBlocks(self):
 
         if self.config.timer is True:
-            self.time( 'getSameBlocks' );
+            self.time( 'getSameBlocks' )
 
-        blocks = self.blocks;
+        blocks = self.blocks
 
         # Clear blocks array
         blocks.clear()
 
         # Cycle through old text to find connected (linked, matched) blocks
-        j = self.oldText.first;
-        i = None;
+        j = self.oldText.first
+        i = None
         while j is not None:
             # Skip '-' blocks
             while j is not None and self.oldText.tokens[j].link is None:
-                j = self.oldText.tokens[j].next;
+                j = self.oldText.tokens[j].next
 
             # Get '=' block
             if j is not None:
-                i = self.oldText.tokens[j].link;
-                iStart = i;
-                jStart = j;
+                i = self.oldText.tokens[j].link
+                iStart = i
+                jStart = j
 
                 # Detect matching blocks ('=')
-                count = 0;
-                unique = False;
-                text = '';
+                count = 0
+                unique = False
+                text = ''
                 while i is not None and j is not None and self.oldText.tokens[j].link == i:
-                    text += self.oldText.tokens[j].token;
-                    count += 1;
+                    text += self.oldText.tokens[j].token
+                    count += 1
                     if self.newText.tokens[i].unique is True:
-                        unique = True;
-                    i = self.newText.tokens[i].next;
-                    j = self.oldText.tokens[j].next;
+                        unique = True
+                    i = self.newText.tokens[i].next
+                    j = self.oldText.tokens[j].next
 
                 # Save old text '=' block
                 blocks.append( Block(
@@ -1309,10 +1309,10 @@ class WikEdDiff:
 
         # Number blocks in new text order
         for i, block in enumerate(blocks):
-            block.newBlock = i;
+            block.newBlock = i
 
         if self.config.timer is True:
-            self.timeEnd( 'getSameBlocks' );
+            self.timeEnd( 'getSameBlocks' )
 
 
     ##
@@ -1325,10 +1325,10 @@ class WikEdDiff:
     def getSections(self):
 
         if self.config.timer is True:
-            self.time( 'getSections' );
+            self.time( 'getSections' )
 
-        blocks = self.blocks;
-        sections = self.sections;
+        blocks = self.blocks
+        sections = self.sections
 
         # Clear sections array
         sections.clear()
@@ -1336,39 +1336,39 @@ class WikEdDiff:
         # Cycle through blocks
         block = 0
         while block < len(blocks):
-            sectionStart = block;
-            sectionEnd = block;
+            sectionStart = block
+            sectionEnd = block
 
-            oldMax = blocks[sectionStart].oldNumber;
-            sectionOldMax = oldMax;
+            oldMax = blocks[sectionStart].oldNumber
+            sectionOldMax = oldMax
 
             # Check right
             for j in range(sectionStart + 1, len(blocks)):
                 # Check for crossing over to the left
                 if blocks[j].oldNumber > oldMax:
-                    oldMax = blocks[j].oldNumber;
+                    oldMax = blocks[j].oldNumber
                 elif blocks[j].oldNumber < sectionOldMax:
-                    sectionEnd = j;
-                    sectionOldMax = oldMax;
+                    sectionEnd = j
+                    sectionOldMax = oldMax
 
             # Save crossing sections
             if sectionEnd > sectionStart:
                 # Save section to block
                 for i in range(sectionStart, sectionEnd + 1):
-                    blocks[i].section = len(sections);
+                    blocks[i].section = len(sections)
 
                 # Save section
                 sections.append( Section(
                         blockStart = sectionStart,
                         blockEnd   = sectionEnd
-                    ) );
-                block = sectionEnd;
+                    ) )
+                block = sectionEnd
                 continue
 
             block += 1
 
         if self.config.timer is True:
-            self.timeEnd( 'getSections' );
+            self.timeEnd( 'getSections' )
 
 
     ##
@@ -1380,10 +1380,10 @@ class WikEdDiff:
     def getGroups(self):
 
         if self.config.timer is True:
-            self.time( 'getGroups' );
+            self.time( 'getGroups' )
 
-        blocks = self.blocks;
-        groups = self.groups;
+        blocks = self.blocks
+        groups = self.groups
 
         # Clear groups array
         groups.clear()
@@ -1391,43 +1391,43 @@ class WikEdDiff:
         # Cycle through blocks
         block = 0
         while block < len(blocks):
-            groupStart = block;
-            groupEnd = block;
-            oldBlock = blocks[groupStart].oldBlock;
+            groupStart = block
+            groupEnd = block
+            oldBlock = blocks[groupStart].oldBlock
 
             # Get word and char count of block
-            words = self.wordCount( blocks[block].text );
-            maxWords = words;
-            unique = blocks[block].unique;
-            chars = blocks[block].chars;
+            words = self.wordCount( blocks[block].text )
+            maxWords = words
+            unique = blocks[block].unique
+            chars = blocks[block].chars
 
             # Check right
             for i in range(groupEnd + 1, len(blocks)):
                 # Check for crossing over to the left
                 if blocks[i].oldBlock != oldBlock + 1:
-                    break;
-                oldBlock = blocks[i].oldBlock;
+                    break
+                oldBlock = blocks[i].oldBlock
 
                 # Get word and char count of block
                 if blocks[i].words > maxWords:
-                    maxWords = blocks[i].words;
+                    maxWords = blocks[i].words
                 if blocks[i].unique is True:
-                    unique = True;
-                words += blocks[i].words;
-                chars += blocks[i].chars;
-                groupEnd = i;
+                    unique = True
+                words += blocks[i].words
+                chars += blocks[i].chars
+                groupEnd = i
 
             # Save crossing group
             if groupEnd >= groupStart:
                 # Set groups outside sections as fixed
-                fixed = False;
+                fixed = False
                 if blocks[groupStart].section is None:
-                    fixed = True;
+                    fixed = True
 
                 # Save group to block
                 for i in range(groupStart, groupEnd + 1):
-                    blocks[i].group = len(groups);
-                    blocks[i].fixed = fixed;
+                    blocks[i].group = len(groups)
+                    blocks[i].fixed = fixed
 
                 # Save group
                 groups.append( Group(
@@ -1441,17 +1441,17 @@ class WikEdDiff:
                         fixed      = fixed,
                         movedFrom  = None,
                         color      = 0
-                ) );
-                block = groupEnd;
+                ) )
+                block = groupEnd
 
                 # Set global word count of longest linked block
                 if maxWords > self.maxWords:
-                    self.maxWords = maxWords;
+                    self.maxWords = maxWords
 
             block += 1
 
         if self.config.timer is True:
-            self.timeEnd( 'getGroups' );
+            self.timeEnd( 'getGroups' )
 
 
     ##
@@ -1464,44 +1464,44 @@ class WikEdDiff:
     def setFixed(self):
 
         if self.config.timer is True:
-            self.time( 'setFixed' );
+            self.time( 'setFixed' )
 
-        blocks = self.blocks;
-        groups = self.groups;
-        sections = self.sections;
+        blocks = self.blocks
+        groups = self.groups
+        sections = self.sections
 
         # Cycle through sections
         for section in sections:
-            blockStart = section.blockStart;
-            blockEnd = section.blockEnd;
+            blockStart = section.blockStart
+            blockEnd = section.blockEnd
 
-            groupStart = blocks[blockStart].group;
-            groupEnd = blocks[blockEnd].group;
+            groupStart = blocks[blockStart].group
+            groupEnd = blocks[blockEnd].group
 
             # Recusively find path of groups in increasing old group order with longest char length
-            cache = {};
-            maxChars = 0;
-            maxPath = None;
+            cache = {}
+            maxChars = 0
+            maxPath = None
 
             # Start at each group of section
             for i in range(groupStart, groupEnd + 1):
-                pathObj = self.findMaxPath( i, groupEnd, cache );
+                pathObj = self.findMaxPath( i, groupEnd, cache )
                 if pathObj.chars > maxChars:
-                    maxPath = pathObj.path;
-                    maxChars = pathObj.chars;
+                    maxPath = pathObj.path
+                    maxChars = pathObj.chars
 
             # Mark fixed groups
 # TODO simplify
             for i in range(len(maxPath)):
-                group = maxPath[i];
-                groups[group].fixed = True;
+                group = maxPath[i]
+                groups[group].fixed = True
 
                 # Mark fixed blocks
                 for block in range(groups[group].blockStart, groups[group].blockEnd + 1):
-                    blocks[block].fixed = True;
+                    blocks[block].fixed = True
 
         if self.config.timer is True:
-            self.timeEnd( 'setFixed' );
+            self.timeEnd( 'setFixed' )
 
 
     ##
@@ -1514,16 +1514,16 @@ class WikEdDiff:
     ##
     def findMaxPath( self, start, groupEnd, cache ):
 
-        groups = self.groups;
+        groups = self.groups
 
         # Find longest sub-path
-        maxChars = 0;
-        oldNumber = groups[start].oldNumber;
+        maxChars = 0
+        oldNumber = groups[start].oldNumber
         returnObj = CacheEntry( path=[], chars=0 )
         for i in range(start + 1, groupEnd + 1):
             # Only in increasing old group order
             if groups[i].oldNumber < oldNumber:
-                continue;
+                continue
 
             # Get longest sub-path from cache (deep copy)
             if i in cache:
@@ -1532,16 +1532,16 @@ class WikEdDiff:
                 pathObj = CacheEntry( path=copy.deepcopy(cache[i].path), chars=cache[i].chars )
             # Get longest sub-path by recursion
             else:
-                pathObj = self.findMaxPath( i, groupEnd, cache );
+                pathObj = self.findMaxPath( i, groupEnd, cache )
 
             # Select longest sub-path
             if pathObj.chars > maxChars:
-                maxChars = pathObj.chars;
-                returnObj = pathObj;
+                maxChars = pathObj.chars
+                returnObj = pathObj
 
         # Add current start to path
-        returnObj.path.insert( 0, start );
-        returnObj.chars += groups[start].chars;
+        returnObj.path.insert( 0, start )
+        returnObj.chars += groups[start].chars
 
         # Save path to cache (deep copy)
         if start not in cache:
@@ -1549,7 +1549,7 @@ class WikEdDiff:
 #            cache.append( CacheEntry( path=returnObj.path.slice(), chars=returnObj.chars ) )
             cache[start] = CacheEntry( path=copy.deepcopy(returnObj.path), chars=returnObj.chars )
 
-        return returnObj;
+        return returnObj
 
 
     ##
@@ -1564,21 +1564,21 @@ class WikEdDiff:
     ##
     def unlinkBlocks(self):
 
-        blocks = self.blocks;
-        groups = self.groups;
+        blocks = self.blocks
+        groups = self.groups
 
         # Cycle through groups
-        unlinked = False;
+        unlinked = False
         for group in range(len(groups)):
-            blockStart = groups[group].blockStart;
-            blockEnd = groups[group].blockEnd;
+            blockStart = groups[group].blockStart
+            blockEnd = groups[group].blockEnd
 
             # Unlink whole group if no block is at least blockMinLength words long and unique
             if groups[group].maxWords < self.config.blockMinLength and groups[group].unique is False:
                 for block in range(blockStart, blockEnd + 1):
                     if blocks[block].type == '=':
-                        self.unlinkSingleBlock( blocks[block] );
-                        unlinked = True;
+                        self.unlinkSingleBlock( blocks[block] )
+                        unlinked = True
 
             # Otherwise unlink block flanks
             else:
@@ -1587,10 +1587,10 @@ class WikEdDiff:
                     if blocks[block].type == '=':
                         # Stop unlinking if more than one word or a unique word
                         if blocks[block].words > 1 or blocks[block].unique is True:
-                            break;
-                        self.unlinkSingleBlock( blocks[block] );
-                        unlinked = True;
-                        blockStart = block;
+                            break
+                        self.unlinkSingleBlock( blocks[block] )
+                        unlinked = True
+                        blockStart = block
 
                 # Unlink blocks from end
                 for block in range(blockEnd, blockStart, -1):
@@ -1600,11 +1600,11 @@ class WikEdDiff:
                                 blocks[block].words > 1 or
                                 ( blocks[block].words == 1 and blocks[block].unique is True )
                                 ):
-                            break;
-                        self.unlinkSingleBlock( blocks[block] );
-                        unlinked = True;
+                            break
+                        self.unlinkSingleBlock( blocks[block] )
+                        unlinked = True
 
-        return unlinked;
+        return unlinked
 
 
     ##
@@ -1616,12 +1616,12 @@ class WikEdDiff:
     def unlinkSingleBlock( self, block ):
 
         # Cycle through old text
-        j = block.oldStart;
+        j = block.oldStart
         for count in range(block.count):
             # Unlink tokens
             self.newText.tokens[ self.oldText.tokens[j].link ].link = None
             self.oldText.tokens[j].link = None
-            j = self.oldText.tokens[j].next;
+            j = self.oldText.tokens[j].next
 
 
     ##
@@ -1633,22 +1633,22 @@ class WikEdDiff:
     def getDelBlocks(self):
 
         if self.config.timer is True:
-            self.time( 'getDelBlocks' );
+            self.time( 'getDelBlocks' )
 
-        blocks = self.blocks;
+        blocks = self.blocks
 
         # Cycle through old text to find connected (linked, matched) blocks
-        j = self.oldText.first;
-        i = None;
+        j = self.oldText.first
+        i = None
         while j is not None:
             # Collect '-' blocks
-            oldStart = j;
-            count = 0;
-            text = '';
+            oldStart = j
+            count = 0
+            text = ''
             while j is not None and self.oldText.tokens[j].link is None:
-                count += 1;
-                text += self.oldText.tokens[j].token;
-                j = self.oldText.tokens[j].next;
+                count += 1
+                text += self.oldText.tokens[j].token
+                j = self.oldText.tokens[j].next
 
             # Save old text '-' block
             if count != 0:
@@ -1668,17 +1668,17 @@ class WikEdDiff:
                             fixed     = False,
                             moved     = None,
                             text      = text
-                    ) );
+                    ) )
 
             # Skip '=' blocks
             if j is not None:
-                i = self.oldText.tokens[j].link;
+                i = self.oldText.tokens[j].link
                 while i is not None and j is not None and self.oldText.tokens[j].link == i:
-                    i = self.newText.tokens[i].next;
-                    j = self.oldText.tokens[j].next;
+                    i = self.newText.tokens[i].next
+                    j = self.oldText.tokens[j].next
 
         if self.config.timer is True:
-            self.timeEnd( 'getDelBlocks' );
+            self.timeEnd( 'getDelBlocks' )
 
 
     ##
@@ -1699,47 +1699,47 @@ class WikEdDiff:
     def positionDelBlocks(self):
 
         if self.config.timer is True:
-            self.time( 'positionDelBlocks' );
+            self.time( 'positionDelBlocks' )
 
-        blocks = self.blocks;
-        groups = self.groups;
+        blocks = self.blocks
+        groups = self.groups
 
         # Sort shallow copy of blocks by oldNumber
         blocksOld = sorted(blocks, key=lambda block: block.oldNumber)
 
         # Cycle through blocks in old text order
         for block in range(len(blocksOld)):
-            delBlock = blocksOld[block];
+            delBlock = blocksOld[block]
 
             # '-' block only
             if delBlock.type != '-':
-                continue;
+                continue
 
             # Find fixed '=' reference block from original block position to position '-' block
             # Similar to position marks '|' code
 
             # Get old text prev block
-            prevBlockNumber = 0;
-            prevBlock = 0;
+            prevBlockNumber = 0
+            prevBlock = 0
             if block > 0:
-                prevBlockNumber = blocksOld[block - 1].newBlock;
-                prevBlock = blocks[prevBlockNumber];
+                prevBlockNumber = blocksOld[block - 1].newBlock
+                prevBlock = blocks[prevBlockNumber]
 
             # Get old text next block
-            nextBlockNumber = 0;
-            nextBlock = 0;
+            nextBlockNumber = 0
+            nextBlock = 0
             if block < len(blocksOld) - 1:
-                nextBlockNumber = blocksOld[block + 1].newBlock;
-                nextBlock = blocks[nextBlockNumber];
+                nextBlockNumber = blocksOld[block + 1].newBlock
+                nextBlock = blocks[nextBlockNumber]
 
             # Move after prev block if fixed
-            refBlock = 0;
+            refBlock = 0
             if prevBlock != 0 and prevBlock.type == '=' and prevBlock.fixed is True:
-                refBlock = prevBlock;
+                refBlock = prevBlock
 
             # Move before next block if fixed
             elif nextBlock != 0 and nextBlock.type == '=' and nextBlock.fixed is True:
-                refBlock = nextBlock;
+                refBlock = nextBlock
 
             # Move after prev block if not start of group
             elif (
@@ -1747,7 +1747,7 @@ class WikEdDiff:
                     prevBlock.type == '=' and
                     prevBlockNumber != groups[ prevBlock.group ].blockEnd
                     ):
-                refBlock = prevBlock;
+                refBlock = prevBlock
 
             # Move before next block if not start of group
             elif (
@@ -1755,31 +1755,31 @@ class WikEdDiff:
                     nextBlock.type == '=' and
                     nextBlockNumber != groups[ nextBlock.group ].blockStart
                     ):
-                refBlock = nextBlock;
+                refBlock = nextBlock
 
             # Move after closest previous fixed block
             else:
                 for fixed in range(block, -1, -1):
                     if blocksOld[fixed].type == '=' and blocksOld[fixed].fixed is True:
-                        refBlock = blocksOld[fixed];
-                        break;
+                        refBlock = blocksOld[fixed]
+                        break
 
             # Move before first block
             if refBlock == 0:
-                delBlock.newNumber =  -1;
+                delBlock.newNumber =  -1
 
             # Update '-' block data
             else:
-                delBlock.newNumber = refBlock.newNumber;
-                delBlock.section = refBlock.section;
-                delBlock.group = refBlock.group;
-                delBlock.fixed = refBlock.fixed;
+                delBlock.newNumber = refBlock.newNumber
+                delBlock.section = refBlock.section
+                delBlock.group = refBlock.group
+                delBlock.fixed = refBlock.fixed
 
         # Sort '-' blocks in and update groups
-        self.sortBlocks();
+        self.sortBlocks()
 
         if self.config.timer is True:
-            self.timeEnd( 'positionDelBlocks' );
+            self.timeEnd( 'positionDelBlocks' )
 
 
     ##
@@ -1791,27 +1791,27 @@ class WikEdDiff:
     def getInsBlocks(self):
 
         if self.config.timer is True:
-            self.time( 'getInsBlocks' );
+            self.time( 'getInsBlocks' )
 
-        blocks = self.blocks;
+        blocks = self.blocks
 
         # Cycle through new text to find insertion blocks
-        i = self.newText.first;
+        i = self.newText.first
         while i is not None:
 
             # Jump over linked (matched) block
             while i is not None and self.newText.tokens[i].link is not None:
-                i = self.newText.tokens[i].next;
+                i = self.newText.tokens[i].next
 
             # Detect insertion blocks ('+')
             if i is not None:
-                iStart = i;
-                count = 0;
-                text = '';
+                iStart = i
+                count = 0
+                text = ''
                 while i is not None and self.newText.tokens[i].link is None:
-                    count += 1;
-                    text += self.newText.tokens[i].token;
-                    i = self.newText.tokens[i].next;
+                    count += 1
+                    text += self.newText.tokens[i].token
+                    i = self.newText.tokens[i].next
 
                 # Save new text '+' block
                 blocks.append( Block(
@@ -1830,13 +1830,13 @@ class WikEdDiff:
                         fixed     = False,
                         moved     = None,
                         text      = text
-                ) );
+                ) )
 
         # Sort '+' blocks in and update groups
-        self.sortBlocks();
+        self.sortBlocks()
 
         if self.config.timer is True:
-            self.timeEnd( 'getInsBlocks' );
+            self.timeEnd( 'getInsBlocks' )
 
 
     ##
@@ -1847,8 +1847,8 @@ class WikEdDiff:
     ##
     def sortBlocks(self):
 
-        blocks = self.blocks;
-        groups = self.groups;
+        blocks = self.blocks
+        groups = self.groups
 
         # Sort by newNumber, then by old number
         blocks.sort(key=lambda block: (int_or_null(block.newNumber), int_or_null(block.oldNumber)))
@@ -1856,13 +1856,13 @@ class WikEdDiff:
         # Cycle through blocks and update groups with new block numbers
         group = 0
         for block in range(len(blocks)):
-            blockGroup = blocks[block].group;
+            blockGroup = blocks[block].group
             if blockGroup is not None and blockGroup < len(groups):
                 if blockGroup != group:
-                    group = blocks[block].group;
-                    groups[group].blockStart = block;
-                    groups[group].oldNumber = blocks[block].oldNumber;
-                groups[blockGroup].blockEnd = block;
+                    group = blocks[block].group
+                    groups[group].blockStart = block
+                    groups[group].oldNumber = blocks[block].oldNumber
+                groups[blockGroup].blockEnd = block
 
 
     ##
@@ -1874,18 +1874,18 @@ class WikEdDiff:
     def setInsGroups(self):
 
         if self.config.timer is True:
-            self.time( 'setInsGroups' );
+            self.time( 'setInsGroups' )
 
-        blocks = self.blocks;
-        groups = self.groups;
+        blocks = self.blocks
+        groups = self.groups
 
         # Set group numbers of '+' blocks inside existing groups
         for group in range(len(groups)):
-            fixed = groups[group].fixed;
+            fixed = groups[group].fixed
             for block in range(groups[group].blockStart, groups[group].blockEnd + 1):
                 if blocks[block].group is None:
-                    blocks[block].group = group;
-                    blocks[block].fixed = fixed;
+                    blocks[block].group = group
+                    blocks[block].fixed = fixed
 
         # Add remaining '+' blocks to new groups
 
@@ -1893,7 +1893,7 @@ class WikEdDiff:
         for block in range(len(blocks)):
             # Skip existing groups
             if blocks[block].group is None:
-                blocks[block].group = len(groups);
+                blocks[block].group = len(groups)
 
                 # Save new single-block group
                 groups.append( Group(
@@ -1907,10 +1907,10 @@ class WikEdDiff:
                         fixed      = blocks[block].fixed,
                         movedFrom  = None,
                         color      = 0
-                ) );
+                ) )
 
         if self.config.timer is True:
-            self.timeEnd( 'setInsGroups' );
+            self.timeEnd( 'setInsGroups' )
 
 
     ##
@@ -1937,76 +1937,76 @@ class WikEdDiff:
     def insertMarks(self):
 
         if self.config.timer is True:
-            self.time( 'insertMarks' );
+            self.time( 'insertMarks' )
 
-        blocks = self.blocks;
-        groups = self.groups;
-        moved = [];
-        color = 1;
+        blocks = self.blocks
+        groups = self.groups
+        moved = []
+        color = 1
 
         # Make shallow copy of blocks
         blocksOld = blocks[:]
 
         # Enumerate copy
         for i, block in enumerate(blocksOld):
-            block.number = i;
+            block.number = i
 
         # Sort copy by oldNumber, then by newNumber
         blocksOld.sort(key=lambda block: (int_or_null(block.oldNumber), int_or_null(block.newNumber)))
 
         # Create lookup table: original to sorted
-        lookupSorted = {};
+        lookupSorted = {}
         for i in range(len(blocksOld)):
-            lookupSorted[ blocksOld[i].number ] = i;
+            lookupSorted[ blocksOld[i].number ] = i
 
         # Cycle through groups (moved group)
         for moved in range(len(groups)):
-            movedGroup = groups[moved];
+            movedGroup = groups[moved]
             # NOTE: In JavaScript original there were 3 possible values for .fixed:
             #       true, false and null and only .fixed==false entries were processed
             #       in this loop. I think that the fixed==null entries correspond to
             #       those with .oldNumber==None.
             if movedGroup.fixed is True or movedGroup.oldNumber is None:
-                continue;
-            movedOldNumber = movedGroup.oldNumber;
+                continue
+            movedOldNumber = movedGroup.oldNumber
 
             # Find fixed '=' reference block from original block position to position '|' block
             # Similar to position deletions '-' code
 
             # Get old text prev block
-            prevBlock = None;
-            block = lookupSorted[ movedGroup.blockStart ];
+            prevBlock = None
+            block = lookupSorted[ movedGroup.blockStart ]
             if block > 0:
-                prevBlock = blocksOld[block - 1];
+                prevBlock = blocksOld[block - 1]
 
             # Get old text next block
-            nextBlock = None;
-            block = lookupSorted[ movedGroup.blockEnd ];
+            nextBlock = None
+            block = lookupSorted[ movedGroup.blockEnd ]
             if block < len(blocksOld) - 1:
-                nextBlock = blocksOld[block + 1];
+                nextBlock = blocksOld[block + 1]
 
             # Move after prev block if fixed
-            refBlock = None;
+            refBlock = None
             if prevBlock is not None and prevBlock.type == '=' and prevBlock.fixed is True:
-                refBlock = prevBlock;
+                refBlock = prevBlock
 
             # Move before next block if fixed
             elif nextBlock is not None and nextBlock.type == '=' and nextBlock.fixed is True:
-                refBlock = nextBlock;
+                refBlock = nextBlock
 
             # Find closest fixed block to the left
             else:
                 for fixed in range(lookupSorted[ movedGroup.blockStart ] - 1, -1, -1):
                     if blocksOld[fixed].type == '=' and blocksOld[fixed].fixed is True:
-                        refBlock = blocksOld[fixed];
-                        break;
+                        refBlock = blocksOld[fixed]
+                        break
 
             # Get position of new mark block
 
             # No smaller fixed block, moved right from before first block
             if refBlock is None:
-                newNumber = -1;
-                markGroup = len(groups);
+                newNumber = -1
+                markGroup = len(groups)
 
                 # Save new single-mark-block group
                 groups.append( Group(
@@ -2020,10 +2020,10 @@ class WikEdDiff:
                         fixed      = False,
                         movedFrom  = None,
                         color      = 0
-                ) );
+                ) )
             else:
-                newNumber = refBlock.newNumber;
-                markGroup = refBlock.group;
+                newNumber = refBlock.newNumber
+                markGroup = refBlock.group
 
             # Insert '|' block
             blocks.append( Block(
@@ -2042,18 +2042,18 @@ class WikEdDiff:
                     fixed     = True,
                     moved     = moved,
                     text      = ''
-            ) );
+            ) )
 
             # Set group color
-            movedGroup.color = color;
-            movedGroup.movedFrom = markGroup;
-            color += 1;
+            movedGroup.color = color
+            movedGroup.movedFrom = markGroup
+            color += 1
 
         # Sort '|' blocks in and update groups
-        self.sortBlocks();
+        self.sortBlocks()
 
         if self.config.timer is True:
-            self.timeEnd( 'insertMarks' );
+            self.timeEnd( 'insertMarks' )
 
 
     ##
@@ -2071,34 +2071,34 @@ class WikEdDiff:
     ##
     def getDiffFragments(self):
 
-        blocks = self.blocks;
-        groups = self.groups;
-        fragments = self.fragments;
+        blocks = self.blocks
+        groups = self.groups
+        fragments = self.fragments
 
         # Make shallow copy of groups and sort by blockStart
         groupsSort = sorted(groups, key=lambda group: group.blockStart)
 
         # Cycle through groups
         for group in range(len(groupsSort)):
-            blockStart = groupsSort[group].blockStart;
-            blockEnd = groupsSort[group].blockEnd;
+            blockStart = groupsSort[group].blockStart
+            blockEnd = groupsSort[group].blockEnd
 
             # Add moved block start
-            color = groupsSort[group].color;
+            color = groupsSort[group].color
             if color != 0:
                 if groupsSort[group].movedFrom < blocks[ blockStart ].group:
-                    type = '(<';
+                    type = '(<'
                 else:
-                    type = '(>';
+                    type = '(>'
                 fragments.append( Fragment(
                         text  = '',
                         type  = type,
                         color = color
-                ) );
+                ) )
 
             # Cycle through blocks
             for block in range(blockStart, blockEnd + 1):
-                type = blocks[block].type;
+                type = blocks[block].type
 
                 # Add '=' unchanged text and moved block
                 if type == '=' or type == '-' or type == '+':
@@ -2106,30 +2106,30 @@ class WikEdDiff:
                             text  = blocks[block].text,
                             type  = type,
                             color = color
-                    ) );
+                    ) )
 
                 # Add '<' and '>' marks
                 elif type == '|':
-                    movedGroup = groups[ blocks[block].moved ];
+                    movedGroup = groups[ blocks[block].moved ]
 
                     # Get mark text
-                    markText = '';
+                    markText = ''
                     for movedBlock in range(movedGroup.blockStart, movedGroup.blockEnd + 1):
                         if blocks[movedBlock].type == '=' or blocks[movedBlock].type == '-':
-                            markText += blocks[movedBlock].text;
+                            markText += blocks[movedBlock].text
 
                     # Get mark direction
                     if movedGroup.blockStart < blockStart:
-                        markType = '<';
+                        markType = '<'
                     else:
-                        markType = '>';
+                        markType = '>'
 
                     # Add mark
                     fragments.append( Fragment(
                             text  = markText,
                             type  = markType,
                             color = movedGroup.color
-                    ) );
+                    ) )
 
             # Add moved block end
             if color != 0:
@@ -2137,7 +2137,7 @@ class WikEdDiff:
                         text  = '',
                         type  = ' )',
                         color = color
-                ) );
+                ) )
 
         # Cycle through fragments, join consecutive fragments of same type (i.e. '-' blocks)
         fragment = 1
@@ -2149,9 +2149,9 @@ class WikEdDiff:
                     fragments[fragment].text != '' and fragments[fragment - 1].text != ''
                     ):
                 # Join and splice
-                fragments[fragment - 1].text += fragments[fragment].text;
+                fragments[fragment - 1].text += fragments[fragment].text
                 fragments.pop(fragment)
-                fragment -= 1;
+                fragment -= 1
             fragment += 1
 
         # Enclose in containers
@@ -2171,33 +2171,33 @@ class WikEdDiff:
     ##
     def clipDiffFragments(self):
 
-        fragments = self.fragments;
+        fragments = self.fragments
 
         # Skip if only one fragment in containers, no change
         if len(fragments) == 5:
-            return;
+            return
 
         # Min length for clipping right
-        minRight = self.config.clipHeadingRight;
+        minRight = self.config.clipHeadingRight
         if self.config.clipParagraphRightMin < minRight:
-            minRight = self.config.clipParagraphRightMin;
+            minRight = self.config.clipParagraphRightMin
         if self.config.clipLineRightMin < minRight:
-            minRight = self.config.clipLineRightMin;
+            minRight = self.config.clipLineRightMin
         if self.config.clipBlankRightMin < minRight:
-            minRight = self.config.clipBlankRightMin;
+            minRight = self.config.clipBlankRightMin
         if self.config.clipCharsRight < minRight:
-            minRight = self.config.clipCharsRight;
+            minRight = self.config.clipCharsRight
 
         # Min length for clipping left
-        minLeft = self.config.clipHeadingLeft;
+        minLeft = self.config.clipHeadingLeft
         if self.config.clipParagraphLeftMin < minLeft:
-            minLeft = self.config.clipParagraphLeftMin;
+            minLeft = self.config.clipParagraphLeftMin
         if self.config.clipLineLeftMin < minLeft:
-            minLeft = self.config.clipLineLeftMin;
+            minLeft = self.config.clipLineLeftMin
         if self.config.clipBlankLeftMin < minLeft:
-            minLeft = self.config.clipBlankLeftMin;
+            minLeft = self.config.clipBlankLeftMin
         if self.config.clipCharsLeft < minLeft:
-            minLeft = self.config.clipCharsLeft;
+            minLeft = self.config.clipCharsLeft
 
         # Cycle through fragments
         fragment = -1
@@ -2205,66 +2205,66 @@ class WikEdDiff:
             fragment += 1
 
             # Skip if not an unmoved and unchanged block
-            type = fragments[fragment].type;
-            color = fragments[fragment].color;
+            type = fragments[fragment].type
+            color = fragments[fragment].color
             if type != '=' or color != 0:
-                continue;
+                continue
 
             # Skip if too short for clipping
-            text = fragments[fragment].text;
+            text = fragments[fragment].text
             if len(text) < minRight and len(text) < minLeft:
-                continue;
+                continue
 
             # Get line positions including start and end
-            lines = [];
-            lastIndex = 0;
+            lines = []
+            lastIndex = 0
             for regExpMatch in self.config.regExp.clipLine.finditer(text):
-                lines.append( regExpMatch.start() );
+                lines.append( regExpMatch.start() )
                 lastIndex = regExpMatch.end()
             if lines[0] != 0:
-                lines.insert( 0, 0 );
+                lines.insert( 0, 0 )
             if lastIndex != len(text):
-                lines.append(len(text));
+                lines.append(len(text))
 
             # Get heading positions
-            headings = [];
-            headingsEnd = [];
+            headings = []
+            headingsEnd = []
             for regExpMatch in self.config.regExp.clipHeading.finditer(text):
                 headings.append( regExpMatch.start() )
                 headingsEnd.append( regExpMatch.end() )
 
             # Get paragraph positions including start and end
-            paragraphs = [];
+            paragraphs = []
             lastIndex = 0
             for regExpMatch in self.config.regExp.clipParagraph.finditer(text):
-                paragraphs.append( regExpMatch.start() );
+                paragraphs.append( regExpMatch.start() )
                 lastIndex = regExpMatch.end()
             if len(paragraphs) == 0 or paragraphs[0] != 0:
-                paragraphs.insert( 0, 0 );
+                paragraphs.insert( 0, 0 )
             if lastIndex != len(text):
-                paragraphs.append( len(text) );
+                paragraphs.append( len(text) )
 
             # Determine ranges to keep on left and right side
-            rangeRight = None;
-            rangeLeft = None;
-            rangeRightType = '';
-            rangeLeftType = '';
+            rangeRight = None
+            rangeLeft = None
+            rangeRightType = ''
+            rangeLeftType = ''
 
             # Find clip pos from left, skip for first non-container block
             if fragment != 2:
                 # Maximum lines to search from left
-                rangeLeftMax = len(text);
+                rangeLeftMax = len(text)
                 if self.config.clipLinesLeftMax < len(lines):
-                    rangeLeftMax = lines[self.config.clipLinesLeftMax];
+                    rangeLeftMax = lines[self.config.clipLinesLeftMax]
 
                 # Find first heading from left
                 if rangeLeft is None:
                     for j in range(len(headingsEnd)):
                         if headingsEnd[j] > self.config.clipHeadingLeft or headingsEnd[j] > rangeLeftMax:
-                            break;
-                        rangeLeft = headingsEnd[j];
-                        rangeLeftType = 'heading';
-                        break;
+                            break
+                        rangeLeft = headingsEnd[j]
+                        rangeLeftType = 'heading'
+                        break
 
                 # Find first paragraph from left
                 if rangeLeft is None:
@@ -2273,21 +2273,21 @@ class WikEdDiff:
                                 paragraphs[j] > self.config.clipParagraphLeftMax or
                                 paragraphs[j] > rangeLeftMax
                                 ):
-                            break;
+                            break
                         if paragraphs[j] > self.config.clipParagraphLeftMin:
-                            rangeLeft = paragraphs[j];
-                            rangeLeftType = 'paragraph';
-                            break;
+                            rangeLeft = paragraphs[j]
+                            rangeLeftType = 'paragraph'
+                            break
 
                 # Find first line break from left
                 if rangeLeft is None:
                     for j in range(len(lines)):
                         if lines[j] > self.config.clipLineLeftMax or lines[j] > rangeLeftMax:
-                            break;
+                            break
                         if lines[j] > self.config.clipLineLeftMin:
-                            rangeLeft = lines[j];
-                            rangeLeftType = 'line';
-                            break;
+                            rangeLeft = lines[j]
+                            rangeLeftType = 'line'
+                            break
 
                 # Find first blank from left
                 if rangeLeft is None:
@@ -2297,26 +2297,26 @@ class WikEdDiff:
                                 regExpMatch.start() < self.config.clipBlankLeftMax and
                                 regExpMatch.start() < rangeLeftMax
                                 ):
-                            rangeLeft = regExpMatch.start();
-                            rangeLeftType = 'blank';
+                            rangeLeft = regExpMatch.start()
+                            rangeLeftType = 'blank'
 
                 # Fixed number of chars from left
                 if rangeLeft is None:
                     if self.config.clipCharsLeft < rangeLeftMax:
-                        rangeLeft = self.config.clipCharsLeft;
-                        rangeLeftType = 'chars';
+                        rangeLeft = self.config.clipCharsLeft
+                        rangeLeftType = 'chars'
 
                 # Fixed number of lines from left
                 if rangeLeft is None:
-                    rangeLeft = rangeLeftMax;
-                    rangeLeftType = 'fixed';
+                    rangeLeft = rangeLeftMax
+                    rangeLeftType = 'fixed'
 
             # Find clip pos from right, skip for last non-container block
             if fragment != len(fragments) - 3:
                 # Maximum lines to search from right
-                rangeRightMin = 0;
+                rangeRightMin = 0
                 if len(lines) >= self.config.clipLinesRightMax:
-                    rangeRightMin = lines[len(lines) - self.config.clipLinesRightMax];
+                    rangeRightMin = lines[len(lines) - self.config.clipLinesRightMax]
 
                 # Find last heading from right
                 if rangeRight is None:
@@ -2325,10 +2325,10 @@ class WikEdDiff:
                                 headings[j] < len(text) - self.config.clipHeadingRight or
                                 headings[j] < rangeRightMin
                                 ):
-                            break;
-                        rangeRight = headings[j];
-                        rangeRightType = 'heading';
-                        break;
+                            break
+                        rangeRight = headings[j]
+                        rangeRightType = 'heading'
+                        break
 
                 # Find last paragraph from right
                 if rangeRight is None:
@@ -2337,11 +2337,11 @@ class WikEdDiff:
                                 paragraphs[j] < len(text) - self.config.clipParagraphRightMax or
                                 paragraphs[j] < rangeRightMin
                                 ):
-                            break;
+                            break
                         if paragraphs[j] < len(text) - self.config.clipParagraphRightMin:
-                            rangeRight = paragraphs[j];
-                            rangeRightType = 'paragraph';
-                            break;
+                            rangeRight = paragraphs[j]
+                            rangeRightType = 'paragraph'
+                            break
 
                 # Find last line break from right
                 if rangeRight is None:
@@ -2350,66 +2350,66 @@ class WikEdDiff:
                                 lines[j] < len(text) - self.config.clipLineRightMax or
                                 lines[j] < rangeRightMin
                                 ):
-                            break;
+                            break
                         if lines[j] < len(text) - self.config.clipLineRightMin:
-                            rangeRight = lines[j];
-                            rangeRightType = 'line';
-                            break;
+                            rangeRight = lines[j]
+                            rangeRightType = 'line'
+                            break
 
                 # Find last blank from right
                 if rangeRight is None:
-                    startPos = len(text) - self.config.clipBlankRightMax;
+                    startPos = len(text) - self.config.clipBlankRightMax
                     if startPos < rangeRightMin:
-                        startPos = rangeRightMin;
-                    lastPos = None;
+                        startPos = rangeRightMin
+                    lastPos = None
                     regExpMatches = self.config.regExp.clipBlank.finditer(text, pos=startPos)
                     for regExpMatch in regExpMatches:
                         if regExpMatch.start() > len(text) - self.config.clipBlankRightMin:
                             if lastPos is not None:
-                                rangeRight = lastPos;
-                                rangeRightType = 'blank';
-                            break;
+                                rangeRight = lastPos
+                                rangeRightType = 'blank'
+                            break
                         lastPos = regExpMatch.start()
 
                 # Fixed number of chars from right
                 if rangeRight is None:
                     if len(text) - self.config.clipCharsRight > rangeRightMin:
-                        rangeRight = len(text) - self.config.clipCharsRight;
-                        rangeRightType = 'chars';
+                        rangeRight = len(text) - self.config.clipCharsRight
+                        rangeRightType = 'chars'
 
                 # Fixed number of lines from right
                 if rangeRight is None:
-                    rangeRight = rangeRightMin;
-                    rangeRightType = 'fixed';
+                    rangeRight = rangeRightMin
+                    rangeRightType = 'fixed'
 
             # Check if we skip clipping if ranges are close together
             if rangeLeft is not None and rangeRight is not None:
                 # Skip if overlapping ranges
                 if rangeLeft > rangeRight:
-                    continue;
+                    continue
 
                 # Skip if chars too close
-                skipChars = rangeRight - rangeLeft;
+                skipChars = rangeRight - rangeLeft
                 if skipChars < self.config.clipSkipChars:
-                    continue;
+                    continue
 
                 # Skip if lines too close
-                skipLines = 0;
+                skipLines = 0
                 for j in range(len(lines)):
                     if lines[j] > rangeRight or skipLines > self.config.clipSkipLines:
-                        break;
+                        break
                     if lines[j] > rangeLeft:
-                        skipLines += 1;
+                        skipLines += 1
                 if skipLines < self.config.clipSkipLines:
-                    continue;
+                    continue
 
             # Skip if nothing to clip
             if rangeLeft is None and rangeRight is None:
-                continue;
+                continue
 
             # Split left text
-            textLeft = None;
-            omittedLeft = None;
+            textLeft = None
+            omittedLeft = None
             if rangeLeft is not None:
                 textLeft = text[ :rangeLeft ]
 
@@ -2418,15 +2418,15 @@ class WikEdDiff:
 
                 # Get omission indicators, remove trailing blanks
                 if rangeLeftType == 'chars':
-                    omittedLeft = '~';
+                    omittedLeft = '~'
                     textLeft = self.config.regExp.clipTrimBlanksLeft.sub( "", textLeft )
                 elif rangeLeftType == 'blank':
-                    omittedLeft = ' ~';
+                    omittedLeft = ' ~'
                     textLeft = self.config.regExp.clipTrimBlanksLeft.sub( "", textLeft )
 
             # Split right text
-            textRight = None;
-            omittedRight = None;
+            textRight = None
+            omittedRight = None
             if rangeRight is not None:
                 textRight = text[ rangeRight: ]
 
@@ -2435,10 +2435,10 @@ class WikEdDiff:
 
                 # Get omission indicators, remove leading blanks
                 if rangeRightType == 'chars':
-                    omittedRight = '~';
+                    omittedRight = '~'
                     textRight = self.config.regExp.clipTrimBlanksRight.sub( "", textRight )
                 elif rangeRightType == 'blank':
-                    omittedRight = '~ ';
+                    omittedRight = '~ '
                     textRight = self.config.regExp.clipTrimBlanksRight.sub( "", textRight )
 
             # Remove split element
@@ -2446,27 +2446,27 @@ class WikEdDiff:
 
             # Add left text to fragments list
             if rangeLeft is not None:
-                fragments.insert( fragment, Fragment( text=textLeft, type='=', color=0 ) );
+                fragments.insert( fragment, Fragment( text=textLeft, type='=', color=0 ) )
                 fragment += 1
                 if omittedLeft is not None:
-                    fragments.insert( fragment, Fragment( text='', type=omittedLeft, color=0 ) );
+                    fragments.insert( fragment, Fragment( text='', type=omittedLeft, color=0 ) )
                     fragment += 1
 
             # Add fragment container and separator to list
             if rangeLeft is not None and rangeRight is not None:
-                fragments.insert( fragment, Fragment( text='', type=']', color=0 ) );
+                fragments.insert( fragment, Fragment( text='', type=']', color=0 ) )
                 fragment += 1
-                fragments.insert( fragment, Fragment( text='', type=',', color=0 ) );
+                fragments.insert( fragment, Fragment( text='', type=',', color=0 ) )
                 fragment += 1
-                fragments.insert( fragment, Fragment( text='', type='[', color=0 ) );
+                fragments.insert( fragment, Fragment( text='', type='[', color=0 ) )
                 fragment += 1
 
             # Add right text to fragments list
             if rangeRight is not None:
                 if omittedRight is not None:
-                    fragments.insert( fragment, Fragment( text='', type=omittedRight, color=0 ) );
+                    fragments.insert( fragment, Fragment( text='', type=omittedRight, color=0 ) )
                     fragment += 1
-                fragments.insert( fragment, Fragment( text=textRight, type='=', color=0 ) );
+                fragments.insert( fragment, Fragment( text=textRight, type='=', color=0 ) )
                 fragment += 1
 
 
@@ -2480,162 +2480,162 @@ class WikEdDiff:
     ##
     def getDiffHtml( self, version=None ):
 
-        fragments = self.fragments;
+        fragments = self.fragments
 
         # No change, only one unchanged block in containers
         if len(fragments) == 5 and fragments[2].type == '=':
-            self.html = '';
-            return;
+            self.html = ''
+            return
 
         # Cycle through fragments
-        htmlFragments = [];
+        htmlFragments = []
         for fragment in fragments:
-            text = fragment.text;
-            type = fragment.type;
-            color = fragment.color;
-            html = '';
+            text = fragment.text
+            type = fragment.type
+            color = fragment.color
+            html = ''
 
             # Test if text is blanks-only or a single character
-            blank = False;
+            blank = False
             if text != '':
-                blank = self.config.regExp.blankBlock.search( text );
+                blank = self.config.regExp.blankBlock.search( text )
 
             # Add container start markup
             if type == '{':
-                html = self.config.htmlCode.containerStart;
+                html = self.config.htmlCode.containerStart
             # Add container end markup
             elif type == '}':
-                html = self.config.htmlCode.containerEnd;
+                html = self.config.htmlCode.containerEnd
 
             # Add fragment start markup
             if type == '[':
-                html = self.config.htmlCode.fragmentStart;
+                html = self.config.htmlCode.fragmentStart
             # Add fragment end markup
             elif type == ']':
-                html = self.config.htmlCode.fragmentEnd;
+                html = self.config.htmlCode.fragmentEnd
             # Add fragment separator markup
             elif type == ',':
-                html = self.config.htmlCode.separator;
+                html = self.config.htmlCode.separator
 
             # Add omission markup
             if type == '~':
-                html = self.config.htmlCode.omittedChars;
+                html = self.config.htmlCode.omittedChars
 
             # Add omission markup
             if type == ' ~':
-                html = ' ' + self.config.htmlCode.omittedChars;
+                html = ' ' + self.config.htmlCode.omittedChars
 
             # Add omission markup
             if type == '~ ':
-                html = self.config.htmlCode.omittedChars + ' ';
+                html = self.config.htmlCode.omittedChars + ' '
             # Add colored left-pointing block start markup
             elif type == '(<':
                 if version != 'old':
                     # Get title
                     if self.config.noUnicodeSymbols is True:
-                        title = self.config.msg['wiked-diff-block-left-nounicode'];
+                        title = self.config.msg['wiked-diff-block-left-nounicode']
                     else:
-                        title = self.config.msg['wiked-diff-block-left'];
+                        title = self.config.msg['wiked-diff-block-left']
 
                     # Get html
                     if self.config.coloredBlocks is True:
-                        html = self.config.htmlCode.blockColoredStart;
+                        html = self.config.htmlCode.blockColoredStart
                     else:
-                        html = self.config.htmlCode.blockStart;
-                    html = self.htmlCustomize( html, color, title );
+                        html = self.config.htmlCode.blockStart
+                    html = self.htmlCustomize( html, color, title )
 
             # Add colored right-pointing block start markup
             elif type == '(>':
                 if version != 'old':
                     # Get title
                     if self.config.noUnicodeSymbols is True:
-                        title = self.config.msg['wiked-diff-block-right-nounicode'];
+                        title = self.config.msg['wiked-diff-block-right-nounicode']
                     else:
-                        title = self.config.msg['wiked-diff-block-right'];
+                        title = self.config.msg['wiked-diff-block-right']
 
                     # Get html
                     if self.config.coloredBlocks is True:
-                        html = self.config.htmlCode.blockColoredStart;
+                        html = self.config.htmlCode.blockColoredStart
                     else:
-                        html = self.config.htmlCode.blockStart;
-                    html = self.htmlCustomize( html, color, title );
+                        html = self.config.htmlCode.blockStart
+                    html = self.htmlCustomize( html, color, title )
 
             # Add colored block end markup
             elif type == ' )':
                 if version != 'old':
-                    html = self.config.htmlCode.blockEnd;
+                    html = self.config.htmlCode.blockEnd
 
             # Add '=' (unchanged) text and moved block
             if type == '=':
-                text = self.htmlEscape( text );
+                text = self.htmlEscape( text )
                 if color != 0:
                     if version != 'old':
-                        html = self.markupBlanks( text, True );
+                        html = self.markupBlanks( text, True )
                 else:
-                    html = self.markupBlanks( text );
+                    html = self.markupBlanks( text )
 
             # Add '-' text
             elif type == '-':
                 if version != 'new':
                     # For old version skip '-' inside moved group
                     if version != 'old' or color == 0:
-                        text = self.htmlEscape( text );
-                        text = self.markupBlanks( text, True );
+                        text = self.htmlEscape( text )
+                        text = self.markupBlanks( text, True )
                         if blank is True:
-                            html = self.config.htmlCode.deleteStartBlank;
+                            html = self.config.htmlCode.deleteStartBlank
                         else:
-                            html = self.config.htmlCode.deleteStart;
-                        html += text + self.config.htmlCode.deleteEnd;
+                            html = self.config.htmlCode.deleteStart
+                        html += text + self.config.htmlCode.deleteEnd
 
             # Add '+' text
             elif type == '+':
                 if version != 'old':
-                    text = self.htmlEscape( text );
-                    text = self.markupBlanks( text, True );
+                    text = self.htmlEscape( text )
+                    text = self.markupBlanks( text, True )
                     if blank is True:
-                        html = self.config.htmlCode.insertStartBlank;
+                        html = self.config.htmlCode.insertStartBlank
                     else:
-                        html = self.config.htmlCode.insertStart;
-                    html += text + self.config.htmlCode.insertEnd;
+                        html = self.config.htmlCode.insertStart
+                    html += text + self.config.htmlCode.insertEnd
 
             # Add '<' and '>' code
             elif type == '<' or type == '>':
                 if version != 'new':
                     # Display as deletion at original position
                     if self.config.showBlockMoves is False or version == 'old':
-                        text = self.htmlEscape( text );
-                        text = self.markupBlanks( text, True );
+                        text = self.htmlEscape( text )
+                        text = self.markupBlanks( text, True )
                         if version == 'old':
                             if self.config.coloredBlocks is True:
                                 html = self.htmlCustomize( self.config.htmlCode.blockColoredStart, color ) + \
                                        text + \
-                                       self.config.htmlCode.blockEnd;
+                                       self.config.htmlCode.blockEnd
                             else:
                                 html = self.htmlCustomize( self.config.htmlCode.blockStart, color ) + \
                                        text + \
-                                       self.config.htmlCode.blockEnd;
+                                       self.config.htmlCode.blockEnd
                         else:
                             if blank is True:
                                 html = self.config.htmlCode.deleteStartBlank + \
                                        text + \
-                                       self.config.htmlCode.deleteEnd;
+                                       self.config.htmlCode.deleteEnd
                             else:
-                                html = self.config.htmlCode.deleteStart + text + self.config.htmlCode.deleteEnd;
+                                html = self.config.htmlCode.deleteStart + text + self.config.htmlCode.deleteEnd
 
                     # Display as mark
                     else:
                         if type == '<':
                             if self.config.coloredBlocks is True:
-                                html = self.htmlCustomize( self.config.htmlCode.markLeftColored, color, text );
+                                html = self.htmlCustomize( self.config.htmlCode.markLeftColored, color, text )
                             else:
-                                html = self.htmlCustomize( self.config.htmlCode.markLeft, color, text );
+                                html = self.htmlCustomize( self.config.htmlCode.markLeft, color, text )
                         else:
                             if self.config.coloredBlocks is True:
-                                html = self.htmlCustomize( self.config.htmlCode.markRightColored, color, text );
+                                html = self.htmlCustomize( self.config.htmlCode.markRightColored, color, text )
                             else:
-                                html = self.htmlCustomize( self.config.htmlCode.markRight, color, text );
+                                html = self.htmlCustomize( self.config.htmlCode.markRight, color, text )
 
-            htmlFragments.append( html );
+            htmlFragments.append( html )
 
         # Join fragments
         self.html = "".join(htmlFragments)
@@ -2655,29 +2655,29 @@ class WikEdDiff:
     def htmlCustomize( self, html, number, title=None ):
 
         # Replace {number} with class/color/block/mark/id number
-        html = html.replace("{number}", str(number));
+        html = html.replace("{number}", str(number))
 
         # Replace {nounicode} with wikEdDiffNoUnicode class name
         if self.config.noUnicodeSymbols is True:
-            html = html.replace("{nounicode}", ' wikEdDiffNoUnicode');
+            html = html.replace("{nounicode}", ' wikEdDiffNoUnicode')
         else:
-            html = html.replace("{nounicode}", '');
+            html = html.replace("{nounicode}", '')
 
         # Shorten title text, replace {title}
         if title != None:
-            max = 512;
-            end = 128;
-            gapMark = ' [...] ';
+            max = 512
+            end = 128
+            gapMark = ' [...] '
             if len(title) > max:
                 title = title[ : max - len(gapMark) - end ] + \
                         gapMark + \
-                        title[ len(title) - end : ];
-            title = self.htmlEscape( title );
-            title = title.replace("\t", '&nbsp;&nbsp;');
-            title = title.replace("  ", '&nbsp;&nbsp;');
-            html = html.replace("{title}", title);
+                        title[ len(title) - end : ]
+            title = self.htmlEscape( title )
+            title = title.replace("\t", '&nbsp;&nbsp;')
+            title = title.replace("  ", '&nbsp;&nbsp;')
+            html = html.replace("{title}", title)
 
-        return html;
+        return html
 
 
     ##
@@ -2688,11 +2688,11 @@ class WikEdDiff:
     ##
     def htmlEscape( self, html ):
 
-        html = html.replace("&", '&amp;');
-        html = html.replace("<", '&lt;');
-        html = html.replace(">", '&gt;');
-        html = html.replace('"', '&quot;');
-        return html;
+        html = html.replace("&", '&amp;')
+        html = html.replace("<", '&lt;')
+        html = html.replace(">", '&gt;')
+        html = html.replace('"', '&quot;')
+        return html
 
 
     ##
@@ -2705,10 +2705,10 @@ class WikEdDiff:
     def markupBlanks( self, html, highlight=False ):
 
         if highlight is True:
-            html = html.replace(" ", self.config.htmlCode.space);
-            html = html.replace("\n", self.config.htmlCode.newline);
-        html = html.replace("\t", self.config.htmlCode.tab);
-        return html;
+            html = html.replace(" ", self.config.htmlCode.space)
+            html = html.replace("\n", self.config.htmlCode.newline)
+        html = html.replace("\t", self.config.htmlCode.tab)
+        return html
 
 
     ##
@@ -2737,12 +2737,12 @@ class WikEdDiff:
         if diff != text:
             logger.debug(
                     'Error: wikEdDiff unit test failure: diff not consistent with new text version!'
-            );
-            self.error = True;
-            logger.debug( 'new text:\n' + text );
-            logger.debug( 'new diff:\n' + diff );
+            )
+            self.error = True
+            logger.debug( 'new text:\n' + text )
+            logger.debug( 'new diff:\n' + diff )
         else:
-            logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with new text.' );
+            logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with new text.' )
 
         # Check if output is consistent with old text
         self.getDiffHtml( 'old' )
@@ -2751,12 +2751,12 @@ class WikEdDiff:
         if diff != text:
             logger.debug(
                     'Error: wikEdDiff unit test failure: diff not consistent with old text version!'
-            );
-            self.error = True;
-            logger.debug( 'old text:\n' + text );
-            logger.debug( 'old diff:\n' + diff );
+            )
+            self.error = True
+            logger.debug( 'old text:\n' + text )
+            logger.debug( 'old diff:\n' + diff )
         else:
-            logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with old text.' );
+            logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with old text.' )
 
 
     ##
@@ -2768,7 +2768,7 @@ class WikEdDiff:
     def debugBlocks( self, name, blocks=None ):
 
         if blocks is None:
-            blocks = self.blocks;
+            blocks = self.blocks
         dump = "\n" + "\t".join(["i", "oldBl", "newBl", "oldNm", "newNm", "oldSt", "count", "uniq", "words", "chars", "type", "sect", "group", "fixed", "moved", "text"]) + "\n"
         for i, block in enumerate(blocks):
             dump += "\t".join(map(str, [i, block.oldBlock, block.newBlock,
@@ -2777,7 +2777,7 @@ class WikEdDiff:
                     block.chars, block.type, block.section,
                     block.group, block.fixed, block.moved,
                     self.debugShortenText( block.text )])) + "\n"
-        logger.debug( name + ':\n' + dump );
+        logger.debug( name + ':\n' + dump )
 
 
     ##
@@ -2789,14 +2789,14 @@ class WikEdDiff:
     def debugGroups( self, name, groups=None ):
 
         if groups is None:
-            groups = self.groups;
+            groups = self.groups
         dump = "\n" + "\t".join(["i", "oldNm", "blSta", "blEnd", "uniq", "maxWo", "words", "chars", "fixed", "oldNm", "mFrom", "color"]) + "\n"
         for i, group in enumerate(groups):
             dump += "\t".join(map(str, [i, group.oldNumber, group.blockStart,
                     group.blockEnd, group.unique, group.maxWords,
                     group.words, group.chars, group.fixed,
                     group.oldNumber, group.movedFrom, group.color])) + "\n"
-        logger.debug( name + ':\n' + dump );
+        logger.debug( name + ':\n' + dump )
 
 
     ##
@@ -2807,12 +2807,12 @@ class WikEdDiff:
     ##
     def debugFragments( self, name ):
 
-        fragments = self.fragments;
+        fragments = self.fragments
         dump = "\n" + "\t".join(["i", "type", "color", "text"]) + "\n"
         for i, fragment in enumerate(fragments):
             dump += "\t".join(map(str, [i, fragment.type, fragment.color,
                     self.debugShortenText( fragment.text, 120, 40 )])) + "\n"
-        logger.debug( name + ':\n' + dump );
+        logger.debug( name + ':\n' + dump )
 
 
     ##
@@ -2823,10 +2823,10 @@ class WikEdDiff:
     ##
     def debugBorders( self, name, borders ):
 
-        dump = '\ni \t[ new \told ]\n';
+        dump = '\ni \t[ new \told ]\n'
         for i, border in enumerate(borders):
-            dump += str(i) + ' \t[ ' + str(borders[i][0]) + ' \t' + str(borders[i][1]) + ' ]\n';
-        logger.debug( name, dump );
+            dump += str(i) + ' \t[ ' + str(borders[i][0]) + ' \t' + str(borders[i][1]) + ' ]\n'
+        logger.debug( name, dump )
 
 
     ##
@@ -2841,29 +2841,29 @@ class WikEdDiff:
 
         if not isinstance(text, str):
             text = str(text)
-        text = text.replace("\n", '\\n');
-        text = text.replace("\t", '  ');
+        text = text.replace("\n", '\\n')
+        text = text.replace("\t", '  ')
         if len(text) > max:
-            text = text[ : max - 1 - end ] + '…' + text[ len(text) - end : ];
-        return '"' + text + '"';
+            text = text[ : max - 1 - end ] + '…' + text[ len(text) - end : ]
+        return '"' + text + '"'
 
 
     ##
     ## Start timer 'label', analogous to JavaScript console timer.
-    ## Usage: self.time( 'label' );
+    ## Usage: self.time( 'label' )
     ##
     ## @param string label Timer label
     ## @param[out] array timer Current time in milliseconds (float)
     ##
     def time( self, label ):
 
-        self.timer[label] = time.time();
+        self.timer[label] = time.time()
 
 
     ##
     ## Stop timer 'label', analogous to JavaScript console timer.
     ## Logs time in milliseconds since start to browser console.
-    ## Usage: self.timeEnd( 'label' );
+    ## Usage: self.timeEnd( 'label' )
     ##
     ## @param string label Timer label
     ## @param bool noLog Do not log result
@@ -2871,20 +2871,20 @@ class WikEdDiff:
     ##
     def timeEnd( self, label, noLog=False ):
 
-        diff = 0;
+        diff = 0
         if label in self.timer:
-            start = self.timer[label];
-            stop = time.time();
-            diff = stop - start;
+            start = self.timer[label]
+            stop = time.time()
+            diff = stop - start
             del self.timer[label]
             if noLog is not True:
                 logger.debug( "{}: {:.2g} s".format(label, diff) )
-        return diff;
+        return diff
 
 
     ##
     ## Log recursion timer results to browser console.
-    ## Usage: self.timeRecursionEnd();
+    ## Usage: self.timeRecursionEnd()
     ##
     ## @param string text Text label for output
     ## @param[in] array recursionTimer Accumulated recursion times
@@ -2894,9 +2894,9 @@ class WikEdDiff:
         if len(self.recursionTimer) > 1:
             # TODO: WTF? (they are accumulated first..)
             # Subtract times spent in deeper recursions
-            timerEnd = len(self.recursionTimer) - 1;
+            timerEnd = len(self.recursionTimer) - 1
             for i in range(timerEnd):
-                self.recursionTimer[i] -= self.recursionTimer[i + 1];
+                self.recursionTimer[i] -= self.recursionTimer[i + 1]
 
             # Log recursion times
             for i in range(len(self.recursionTimer)):
@@ -2907,7 +2907,7 @@ class WikEdDiff:
 
     ##
     ## Log variable values to debug console.
-    ## Usage: self.debug( 'var', var );
+    ## Usage: self.debug( 'var', var )
     ##
     ## @param string name Object identifier
     ## @param mixed|undefined name Object to be logged
@@ -2915,9 +2915,9 @@ class WikEdDiff:
     def debug( self, name, obj=None ):
 
         if obj is None:
-            logger.debug( name );
+            logger.debug( name )
         else:
-            logger.debug( name + ': ' + obj );
+            logger.debug( name + ': ' + obj )
 
 
     ##
@@ -2947,7 +2947,7 @@ class WikEdDiff:
 ## @class WikEdDiffText
 ##
 class WikEdDiffText:
-    
+
     ##
     ## Constructor, initialize text object.
     ##
@@ -2957,29 +2957,29 @@ class WikEdDiffText:
     def __init__( self, text, parent ):
 
         # @var WikEdDiff parent Parent object for configuration settings and debugging methods
-        self.parent = parent;
+        self.parent = parent
 
         # @var string text Text of this version
-        self.text = str(text);
+        self.text = str(text)
 
         # @var array tokens Tokens list
-        self.tokens = [];
+        self.tokens = []
 
         # @var int first, last First and last index of tokens list
-        self.first = None;
-        self.last = None;
+        self.first = None
+        self.last = None
 
         # @var array words Word counts for version text
-        self.words = {};
+        self.words = {}
 
 
         # Parse and count words and chunks for identification of unique real words
         if self.parent.config.timer is True:
-            self.parent.time( 'wordParse' );
-        self.wordParse( self.parent.config.regExp.countWords );
-        self.wordParse( self.parent.config.regExp.countChunks );
+            self.parent.time( 'wordParse' )
+        self.wordParse( self.parent.config.regExp.countWords )
+        self.wordParse( self.parent.config.regExp.countChunks )
         if self.parent.config.timer is True:
-            self.parent.timeEnd( 'wordParse' );
+            self.parent.timeEnd( 'wordParse' )
 
 
     ##
@@ -2992,9 +2992,9 @@ class WikEdDiffText:
     def wordParse( self, regExp ):
 
         for regExpMatch in regExp.finditer(self.text):
-            word = regExpMatch.group();
+            word = regExpMatch.group()
             self.words.setdefault(word, 0)
-            self.words[word] += 1;
+            self.words[word] += 1
 
 
     ##
@@ -3009,30 +3009,30 @@ class WikEdDiffText:
     def splitText( self, level, token=None ):
 
         current = len(self.tokens)
-        first = current;
+        first = current
 
         # Split full text or specified token
         if token is None:
-            prev = None;
-            next = None;
-            text = self.text;
+            prev = None
+            next = None
+            text = self.text
         else:
-            prev = self.tokens[token].prev;
-            next = self.tokens[token].next;
-            text = self.tokens[token].token;
+            prev = self.tokens[token].prev
+            next = self.tokens[token].next
+            text = self.tokens[token].token
 
         # Split text into tokens, regExp match as separator
-        number = 0;
-        split = [];
-        lastIndex = 0;
-        regExp = self.parent.config.regExp.split[level];
+        number = 0
+        split = []
+        lastIndex = 0
+        regExp = self.parent.config.regExp.split[level]
         for regExpMatch in regExp.finditer(text):
             if regExpMatch.start() > lastIndex:
                 split.append( text[lastIndex : regExpMatch.start()] )
             split.append(regExpMatch.group())
             lastIndex = regExpMatch.end()
         if lastIndex < len(text):
-            split.append( text[ lastIndex: ] );
+            split.append( text[ lastIndex: ] )
 
         # Cycle through new tokens
         for i in range(len(split)):
@@ -3045,34 +3045,34 @@ class WikEdDiffText:
                     number = None,
                     unique = False
             ) )
-            number += 1;
+            number += 1
 
             # Link previous item to current
             if prev is not None:
-                self.tokens[prev].next = current;
-            prev = current;
-            current += 1;
+                self.tokens[prev].next = current
+            prev = current
+            current += 1
 
         # Connect last new item and existing next item
         if number > 0 and token is not None:
             if prev is not None:
-                self.tokens[prev].next = next;
+                self.tokens[prev].next = next
             if next is not None:
-                self.tokens[next].prev = prev;
+                self.tokens[next].prev = prev
 
         # Set text first and last token index
         if number > 0:
             # Initial text split
             if token is None:
-                self.first = 0;
-                self.last = prev;
+                self.first = 0
+                self.last = prev
 
             # First or last token has been split
             else:
                 if token == self.first:
-                    self.first = first;
+                    self.first = first
                 if token == self.last:
-                    self.last = prev;
+                    self.last = prev
 
 
     ##
@@ -3084,12 +3084,12 @@ class WikEdDiffText:
     def splitRefine( self, regExp ):
 
         # Cycle through tokens list
-        i = self.first;
+        i = self.first
         while i is not None:
             # Refine unique unmatched tokens into smaller tokens
             if self.tokens[i].link is None:
-                self.splitText( regExp, i );
-            i = self.tokens[i].next;
+                self.splitText( regExp, i )
+            i = self.tokens[i].next
 
 
     ##
@@ -3100,12 +3100,12 @@ class WikEdDiffText:
     def enumerateTokens(self):
 
         # Enumerate tokens list
-        number = 0;
-        i = self.first;
+        number = 0
+        i = self.first
         while i is not None:
-            self.tokens[i].number = number;
-            number += 1;
-            i = self.tokens[i].next;
+            self.tokens[i].number = number
+            number += 1
+            i = self.tokens[i].next
 
 
     ##
@@ -3117,16 +3117,16 @@ class WikEdDiffText:
     ##
     def debugText( self, name ):
 
-        tokens = self.tokens;
-        dump = 'first: ' + str(self.first) + '\tlast: ' + str(self.last) + '\n';
-        dump += '\ni \tlink \t(prev \tnext) \tuniq \t#num \t"token"\n';
-        i = self.first;
+        tokens = self.tokens
+        dump = 'first: ' + str(self.first) + '\tlast: ' + str(self.last) + '\n'
+        dump += '\ni \tlink \t(prev \tnext) \tuniq \t#num \t"token"\n'
+        i = self.first
         while i is not None:
             dump += "{} \t{} \t({} \t{}) \t{} \t#{} \t{}\n".format(i, tokens[i].link, tokens[i].prev, tokens[i].next,
                                                                    tokens[i].unique, tokens[i].number,
                                                                    self.parent.debugShortenText( tokens[i].token ))
-            i = tokens[i].next;
-        logger.debug( name + ':\n' + dump );
+            i = tokens[i].next
+        logger.debug( name + ':\n' + dump )
 
 if __name__ == "__main__":
     import sys
@@ -3290,7 +3290,7 @@ var wikEdDiffBlockHandler = function ( event, element, type ) {
         return;
 };
 """
-    
+
     # Replace mark symbols
     stylesheet = config.stylesheet.replace("{cssMarkLeft}", config.cssMarkLeft) \
                                   .replace("{cssMarkRight}", config.cssMarkRight)

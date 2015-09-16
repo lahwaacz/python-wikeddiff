@@ -382,9 +382,6 @@ class WikEdDiff:
         if self.config.debug is True:
             self.debugFragments( 'Fragments' )
 
-        if self.error is True:
-            logger.error(self.config.msg["wiked-diff-error"])
-
         # Create html formatted diff code from diff fragments
         if self.config.timer is True:
             self.time( 'html' )
@@ -2704,7 +2701,7 @@ class WikEdDiff:
         diff = re.sub("<[^>]*>", "", html)
         text = self.htmlEscape( self.newText.text )
         if diff != text:
-            logger.debug(
+            logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with new text version!'
             )
             self.error = True
@@ -2718,7 +2715,7 @@ class WikEdDiff:
         diff = re.sub("<[^>]*>", "", html)
         text = self.htmlEscape( self.oldText.text )
         if diff != text:
-            logger.debug(
+            logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with old text version!'
             )
             self.error = True

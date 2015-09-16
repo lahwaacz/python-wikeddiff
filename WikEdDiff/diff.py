@@ -2433,11 +2433,9 @@ class WikEdDiff:
     ## Create html formatted diff code from diff fragments.
     ##
     ## @param array fragments Fragments array, abstraction layer for diff code
-    ## @param string|undefined version
-    ##   Output version: 'new' or 'old': only text from new or old version, used for unit tests
-    ## @return string html Html code of diff
+    ## @return string Html code of diff
     ##
-    def getDiffHtml( self, fragments, version=None ):
+    def getDiffHtml( self, fragments ):
 
         # No change, only one unchanged block in containers
         if len(fragments) == 5 and fragments[2].type == '=':
@@ -2490,110 +2488,91 @@ class WikEdDiff:
                 html = self.config.htmlCode.omittedChars + ' '
             # Add colored left-pointing block start markup
             elif type == '(<':
-                if version != 'old':
-                    # Get title
-                    if self.config.noUnicodeSymbols is True:
-                        title = self.config.msg['wiked-diff-block-left-nounicode']
-                    else:
-                        title = self.config.msg['wiked-diff-block-left']
+                # Get title
+                if self.config.noUnicodeSymbols is True:
+                    title = self.config.msg['wiked-diff-block-left-nounicode']
+                else:
+                    title = self.config.msg['wiked-diff-block-left']
 
-                    # Get html
-                    if self.config.coloredBlocks is True:
-                        html = self.config.htmlCode.blockColoredStart
-                    else:
-                        html = self.config.htmlCode.blockStart
-                    html = self.htmlCustomize( html, color, title )
+                # Get html
+                if self.config.coloredBlocks is True:
+                    html = self.config.htmlCode.blockColoredStart
+                else:
+                    html = self.config.htmlCode.blockStart
+                html = self.htmlCustomize( html, color, title )
 
             # Add colored right-pointing block start markup
             elif type == '(>':
-                if version != 'old':
-                    # Get title
-                    if self.config.noUnicodeSymbols is True:
-                        title = self.config.msg['wiked-diff-block-right-nounicode']
-                    else:
-                        title = self.config.msg['wiked-diff-block-right']
+                # Get title
+                if self.config.noUnicodeSymbols is True:
+                    title = self.config.msg['wiked-diff-block-right-nounicode']
+                else:
+                    title = self.config.msg['wiked-diff-block-right']
 
-                    # Get html
-                    if self.config.coloredBlocks is True:
-                        html = self.config.htmlCode.blockColoredStart
-                    else:
-                        html = self.config.htmlCode.blockStart
-                    html = self.htmlCustomize( html, color, title )
+                # Get html
+                if self.config.coloredBlocks is True:
+                    html = self.config.htmlCode.blockColoredStart
+                else:
+                    html = self.config.htmlCode.blockStart
+                html = self.htmlCustomize( html, color, title )
 
             # Add colored block end markup
             elif type == ' )':
-                if version != 'old':
-                    html = self.config.htmlCode.blockEnd
+                html = self.config.htmlCode.blockEnd
 
             # Add '=' (unchanged) text and moved block
             if type == '=':
                 text = self.htmlEscape( text )
                 if color != 0:
-                    if version != 'old':
-                        html = self.markupBlanks( text, True )
+                    html = self.markupBlanks( text, True )
                 else:
                     html = self.markupBlanks( text )
 
             # Add '-' text
             elif type == '-':
-                if version != 'new':
-                    # For old version skip '-' inside moved group
-                    if version != 'old' or color == 0:
-                        text = self.htmlEscape( text )
-                        text = self.markupBlanks( text, True )
-                        if blank is True:
-                            html = self.config.htmlCode.deleteStartBlank
-                        else:
-                            html = self.config.htmlCode.deleteStart
-                        html += text + self.config.htmlCode.deleteEnd
+                text = self.htmlEscape( text )
+                text = self.markupBlanks( text, True )
+                if blank is True:
+                    html = self.config.htmlCode.deleteStartBlank
+                else:
+                    html = self.config.htmlCode.deleteStart
+                html += text + self.config.htmlCode.deleteEnd
 
             # Add '+' text
             elif type == '+':
-                if version != 'old':
-                    text = self.htmlEscape( text )
-                    text = self.markupBlanks( text, True )
-                    if blank is True:
-                        html = self.config.htmlCode.insertStartBlank
-                    else:
-                        html = self.config.htmlCode.insertStart
-                    html += text + self.config.htmlCode.insertEnd
+                text = self.htmlEscape( text )
+                text = self.markupBlanks( text, True )
+                if blank is True:
+                    html = self.config.htmlCode.insertStartBlank
+                else:
+                    html = self.config.htmlCode.insertStart
+                html += text + self.config.htmlCode.insertEnd
 
             # Add '<' and '>' code
             elif type == '<' or type == '>':
-                if version != 'new':
-                    # Display as deletion at original position
-                    if self.config.showBlockMoves is False or version == 'old':
-                        text = self.htmlEscape( text )
-                        text = self.markupBlanks( text, True )
-                        if version == 'old':
-                            if self.config.coloredBlocks is True:
-                                html = self.htmlCustomize( self.config.htmlCode.blockColoredStart, color ) + \
-                                       text + \
-                                       self.config.htmlCode.blockEnd
-                            else:
-                                html = self.htmlCustomize( self.config.htmlCode.blockStart, color ) + \
-                                       text + \
-                                       self.config.htmlCode.blockEnd
-                        else:
-                            if blank is True:
-                                html = self.config.htmlCode.deleteStartBlank + \
-                                       text + \
-                                       self.config.htmlCode.deleteEnd
-                            else:
-                                html = self.config.htmlCode.deleteStart + text + self.config.htmlCode.deleteEnd
-
-                    # Display as mark
+                # Display as deletion at original position
+                if self.config.showBlockMoves is False:
+                    text = self.htmlEscape( text )
+                    text = self.markupBlanks( text, True )
+                    if blank is True:
+                        html = self.config.htmlCode.deleteStartBlank + \
+                               text + \
+                               self.config.htmlCode.deleteEnd
                     else:
-                        if type == '<':
-                            if self.config.coloredBlocks is True:
-                                html = self.htmlCustomize( self.config.htmlCode.markLeftColored, color, text )
-                            else:
-                                html = self.htmlCustomize( self.config.htmlCode.markLeft, color, text )
+                        html = self.config.htmlCode.deleteStart + text + self.config.htmlCode.deleteEnd
+
+                # Display as mark
+                else:
+                    if type == '<':
+                        if self.config.coloredBlocks is True:
+                            html = self.htmlCustomize( self.config.htmlCode.markLeftColored, color, text )
                         else:
-                            if self.config.coloredBlocks is True:
-                                html = self.htmlCustomize( self.config.htmlCode.markRightColored, color, text )
-                            else:
-                                html = self.htmlCustomize( self.config.htmlCode.markRight, color, text )
+                            html = self.htmlCustomize( self.config.htmlCode.markLeft, color, text )
+                    else:
+                        if self.config.coloredBlocks is True:
+                            html = self.htmlCustomize( self.config.htmlCode.markRightColored, color, text )
+                        else:
+                            html = self.htmlCustomize( self.config.htmlCode.markRight, color, text )
 
             htmlFragments.append( html )
 
@@ -2689,6 +2668,53 @@ class WikEdDiff:
 
 
     ##
+    ## Dummy plain text formatter used only for unit tests.
+    ##
+    ## @param array fragments Fragments array, abstraction layer for diff code
+    ## @param string version
+    ##   Output version: 'new' or 'old': only text from new or old version
+    ## @return string Plain text representation of the diff for given version.
+    ##
+    def getDiffPlainText( self, fragments, version ):
+
+        if version not in ['old', 'new']:
+            raise Exception("version has to be either 'old' or 'new'")
+
+        # Cycle through fragments
+        output = ""
+        for fragment in fragments:
+            text = fragment.text
+            type = fragment.type
+            color = fragment.color
+
+            # Add '=' (unchanged) text and moved block
+            if type == '=':
+                if color != 0:
+                    if version != 'old':
+                        output += text
+                else:
+                    output += text
+
+            # Add '-' text
+            elif type == '-' and version == 'old':
+                # For old version skip '-' inside moved group
+                if version == 'new' or color == 0:
+                    output += text
+
+            # Add '+' text
+            elif type == '+' and version == 'new':
+                output += text
+
+            # Add '<' and '>' code
+            elif type == '<' or type == '>':
+                if version == 'old':
+                    # Display as deletion at original position
+                    output += text
+
+        return output
+
+
+    ##
     ## Test diff code for consistency with input versions.
     ## Prints results to debug console.
     ##
@@ -2697,10 +2723,8 @@ class WikEdDiff:
     def unitTests(self):
 
         # Check if output is consistent with new text
-        html = self.getDiffHtml( self.fragments, 'new' )
-        diff = re.sub("<[^>]*>", "", html)
-        text = self.htmlEscape( self.newText.text )
-        if diff != text:
+        diff = self.getDiffPlainText( self.fragments, 'new' )
+        if diff != self.newText.text:
             logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with new text version!'
             )
@@ -2711,10 +2735,8 @@ class WikEdDiff:
             logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with new text.' )
 
         # Check if output is consistent with old text
-        html = self.getDiffHtml( self.fragments, 'old' )
-        diff = re.sub("<[^>]*>", "", html)
-        text = self.htmlEscape( self.oldText.text )
-        if diff != text:
+        diff = self.getDiffPlainText( self.fragments, 'old' )
+        if diff != self.oldText.text:
             logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with old text version!'
             )

@@ -2872,21 +2872,6 @@ class WikEdDiff:
 
 
     ##
-    ## Print variable values to debug console.
-    ## Usage: self.debug( 'var', var )
-    ##
-    ## @param string name Object identifier
-    ## @param mixed|undefined name Object to be logged
-    ##
-    def debug( self, name, obj=None ):
-
-        if obj is None:
-            logger.debug( name )
-        else:
-            logger.debug( name + ': ' + obj )
-
-
-    ##
     ## Recursive deep copy from target over source for customization import.
     ##
     ## @param object source Source object

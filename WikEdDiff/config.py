@@ -2,7 +2,7 @@
 
 import re
 
-from utils import *
+from utils import dotdictify
 
 ##
 ## Configuration and customization settings.
@@ -17,12 +17,6 @@ class WikEdDiffConfig:
     ##   Show complete un-clipped diff text (False)
     ##
     fullDiff = False
-
-    ##
-    ## @var bool config.showBlockMoves
-    ##   Enable block move layout with highlighted blocks and marks at the original positions (True)
-    ##
-    showBlockMoves = True
 
     ##
     ## @var bool config.charDiff
@@ -66,19 +60,6 @@ class WikEdDiffConfig:
     ##   Reject blocks if shorter than this number of real words (3)
     ##
     blockMinLength = 3
-
-    ##
-    ## @var bool config.coloredBlocks
-    ##   Display blocks in differing colors (rainbow color scheme) (False)
-    ##
-#    coloredBlocks = False
-    coloredBlocks = True
-
-    ##
-    ## @var bool config.coloredBlocks
-    ##   Do not use UniCode block move marks (legacy browsers) (False)
-    ##
-    noUnicodeSymbols = False
 
     ##
     ## @var bool config.stripTrailingNewline
@@ -200,123 +181,6 @@ class WikEdDiffConfig:
     clipSkipLines = 5
     clipSkipChars = 1000
 
-    # Css stylesheet
-    cssMarkLeft = '◀'
-    cssMarkRight = '▶'
-    stylesheet = """
-/* Insert */
-.wikEdDiffInsert {
-    font-weight: bold; background-color: #bbddff;
-    color: #222; border-radius: 0.25em; padding: 0.2em 1px;
-}
-.wikEdDiffInsertBlank { background-color: #66bbff; }
-.wikEdDiffFragment:hover .wikEdDiffInsertBlank { background-color: #bbddff; }
-
-/* Delete */
-.wikEdDiffDelete {
-    font-weight: bold; background-color: #ffe49c;
-    color: #222; border-radius: 0.25em; padding: 0.2em 1px;
-}
-.wikEdDiffDeleteBlank { background-color: #ffd064; }
-.wikEdDiffFragment:hover .wikEdDiffDeleteBlank { background-color: #ffe49c; }
-
-/* Block */
-.wikEdDiffBlock {
-    font-weight: bold; background-color: #e8e8e8;
-    border-radius: 0.25em; padding: 0.2em 1px; margin: 0 1px;
-}
-.wikEdDiffBlock { }
-.wikEdDiffBlock0 { background-color: #ffff80; }
-.wikEdDiffBlock1 { background-color: #d0ff80; } 
-.wikEdDiffBlock2 { background-color: #ffd8f0; } 
-.wikEdDiffBlock3 { background-color: #c0ffff; } 
-.wikEdDiffBlock4 { background-color: #fff888; } 
-.wikEdDiffBlock5 { background-color: #bbccff; } 
-.wikEdDiffBlock6 { background-color: #e8c8ff; } 
-.wikEdDiffBlock7 { background-color: #ffbbbb; } 
-.wikEdDiffBlock8 { background-color: #a0e8a0; } 
-.wikEdDiffBlockHighlight {
-    background-color: #777; color: #fff; 
-    border: solid #777; border-width: 1px 0; 
-} 
-
-/* Mark */
-.wikEdDiffMarkLeft, .wikEdDiffMarkRight {
-    font-weight: bold; background-color: #ffe49c; 
-    color: #666; border-radius: 0.25em; padding: 0.2em; margin: 0 1px; 
-} 
-.wikEdDiffMarkLeft:before { content: "{cssMarkLeft}"; } 
-.wikEdDiffMarkRight:before { content: "{cssMarkRight}"; } 
-.wikEdDiffMarkLeft.wikEdDiffNoUnicode:before { content: "<"; } 
-.wikEdDiffMarkRight.wikEdDiffNoUnicode:before { content: ">"; } 
-.wikEdDiffMark { background-color: #e8e8e8; color: #666; } 
-.wikEdDiffMark0 { background-color: #ffff60; } 
-.wikEdDiffMark1 { background-color: #c8f880; } 
-.wikEdDiffMark2 { background-color: #ffd0f0; } 
-.wikEdDiffMark3 { background-color: #a0ffff; } 
-.wikEdDiffMark4 { background-color: #fff860; } 
-.wikEdDiffMark5 { background-color: #b0c0ff; } 
-.wikEdDiffMark6 { background-color: #e0c0ff; } 
-.wikEdDiffMark7 { background-color: #ffa8a8; } 
-.wikEdDiffMark8 { background-color: #98e898; } 
-.wikEdDiffMarkHighlight { background-color: #777; color: #fff; } 
-
-/* Wrappers */
-.wikEdDiffContainer { } 
-.wikEdDiffFragment {
-    white-space: pre-wrap; background: #fff; border: #bbb solid; 
-    border-width: 1px 1px 1px 0.5em; border-radius: 0.5em; font-family: sans-serif; 
-    font-size: 88%; line-height: 1.6; box-shadow: 2px 2px 2px #ddd; padding: 1em; margin: 0; 
-} 
-.wikEdDiffNoChange {
-    background: #f0f0f0; border: 1px #bbb solid; border-radius: 0.5em; 
-    line-height: 1.6; box-shadow: 2px 2px 2px #ddd; padding: 0.5em; margin: 1em 0; 
-    text-align: center; 
-} 
-.wikEdDiffSeparator { margin-bottom: 1em; } 
-.wikEdDiffOmittedChars { } 
-
-/* Newline */
-.wikEdDiffNewline:before { content: "¶"; color: transparent; } 
-.wikEdDiffBlock:hover .wikEdDiffNewline:before { color: #aaa; } 
-.wikEdDiffBlockHighlight .wikEdDiffNewline:before { color: transparent; } 
-.wikEdDiffBlockHighlight:hover .wikEdDiffNewline:before { color: #ccc; } 
-.wikEdDiffBlockHighlight:hover .wikEdDiffInsert .wikEdDiffNewline:before, 
-.wikEdDiffInsert:hover .wikEdDiffNewline:before
-{ color: #999; } 
-.wikEdDiffBlockHighlight:hover .wikEdDiffDelete .wikEdDiffNewline:before, 
-.wikEdDiffDelete:hover .wikEdDiffNewline:before
-{ color: #aaa; } 
-
-/* Tab */
-.wikEdDiffTab { position: relative; } 
-.wikEdDiffTabSymbol { position: absolute; top: -0.2em; } 
-.wikEdDiffTabSymbol:before { content: "→"; font-size: smaller; color: #ccc; } 
-.wikEdDiffBlock .wikEdDiffTabSymbol:before { color: #aaa; } 
-.wikEdDiffBlockHighlight .wikEdDiffTabSymbol:before { color: #aaa; } 
-.wikEdDiffInsert .wikEdDiffTabSymbol:before { color: #aaa; } 
-.wikEdDiffDelete .wikEdDiffTabSymbol:before { color: #bbb; } 
-
-/* Space */
-.wikEdDiffSpace { position: relative; } 
-.wikEdDiffSpaceSymbol { position: absolute; top: -0.2em; left: -0.05em; } 
-.wikEdDiffSpaceSymbol:before { content: "·"; color: transparent; } 
-.wikEdDiffBlock:hover .wikEdDiffSpaceSymbol:before { color: #999; } 
-.wikEdDiffBlockHighlight .wikEdDiffSpaceSymbol:before { color: transparent; } 
-.wikEdDiffBlockHighlight:hover .wikEdDiffSpaceSymbol:before { color: #ddd; } 
-.wikEdDiffBlockHighlight:hover .wikEdDiffInsert .wikEdDiffSpaceSymbol:before,
-.wikEdDiffInsert:hover .wikEdDiffSpaceSymbol:before 
-{ color: #888; } 
-.wikEdDiffBlockHighlight:hover .wikEdDiffDelete .wikEdDiffSpaceSymbol:before,
-.wikEdDiffDelete:hover .wikEdDiffSpaceSymbol:before 
-{ color: #999; } 
-
-/* Error */
-.wikEdDiffError .wikEdDiffFragment,
-.wikEdDiffError .wikEdDiffNoChange
-{ background: #faa; }
-"""
-
     # Regular expressions.
 
     regExp = dotdictify({
@@ -422,9 +286,6 @@ class WikEdDiffConfig:
                 re.MULTILINE
         ),
 
-        # RegExp detecting blank-only and single-char blocks
-        'blankBlock': re.compile( "^([^\t\S]+|[^\t])$", re.MULTILINE ),
-
         # RegExps for clipping
         'clipLine': re.compile(
                 '[' + regExpNewLinesAll +
@@ -471,96 +332,4 @@ class WikEdDiffConfig:
                 regExpNewParagraph +
                 ']+'
         )
-    })
-
-    # Messages.
-    msg = {
-        'wiked-diff-empty': '(No difference)',
-        'wiked-diff-same':  '=',
-        'wiked-diff-ins':   '+',
-        'wiked-diff-del':   '-',
-        'wiked-diff-block-left':  '◀',
-        'wiked-diff-block-right': '▶',
-        'wiked-diff-block-left-nounicode':  '<',
-        'wiked-diff-block-right-nounicode': '>',
-        'wiked-diff-error': 'Error: diff not consistent with versions!'
-    }
-
-    ##
-    ## Output html fragments.
-    ## Dynamic replacements:
-    ##   {number}: class/color/block/mark/id number
-    ##   {title}: title attribute (popup)
-    ##   {nounicode}: noUnicodeSymbols fallback
-    ##
-    htmlCode = dotdictify({
-        'noChangeStart':
-                '<div class="wikEdDiffNoChange" title="' +
-                msg['wiked-diff-same'] +
-                '">',
-        'noChangeEnd': '</div>',
-
-        'containerStart': '<div class="wikEdDiffContainer" id="wikEdDiffContainer">',
-        'containerEnd': '</div>',
-
-        'fragmentStart': '<pre class="wikEdDiffFragment" style="white-space: pre-wrap;">',
-        'fragmentEnd': '</pre>',
-        'separator': '<div class="wikEdDiffSeparator"></div>',
-
-        'insertStart':
-                '<span class="wikEdDiffInsert" title="' +
-                msg['wiked-diff-ins'] +
-                '">',
-        'insertStartBlank':
-                '<span class="wikEdDiffInsert wikEdDiffInsertBlank" title="' +
-                msg['wiked-diff-ins'] +
-                '">',
-        'insertEnd': '</span>',
-
-        'deleteStart':
-                '<span class="wikEdDiffDelete" title="' +
-                msg['wiked-diff-del'] +
-                '">',
-        'deleteStartBlank':
-                '<span class="wikEdDiffDelete wikEdDiffDeleteBlank" title="' +
-                msg['wiked-diff-del'] +
-                '">',
-        'deleteEnd': '</span>',
-
-        'blockStart':
-                '<span class="wikEdDiffBlock"' +
-                'title="{title}" id="wikEdDiffBlock{number}"' +
-                'onmouseover="wikEdDiffBlockHandler(undefined, this, \'mouseover\');">',
-        'blockColoredStart':
-                '<span class="wikEdDiffBlock wikEdDiffBlock wikEdDiffBlock{number}"' +
-                'title="{title}" id="wikEdDiffBlock{number}"' +
-                'onmouseover="wikEdDiffBlockHandler(undefined, this, \'mouseover\');">',
-        'blockEnd': '</span>',
-
-        'markLeft':
-                '<span class="wikEdDiffMarkLeft{nounicode}"' +
-                'title="{title}" id="wikEdDiffMark{number}"' +
-                'onmouseover="wikEdDiffBlockHandler(undefined, this, \'mouseover\');"></span>',
-        'markLeftColored':
-                '<span class="wikEdDiffMarkLeft{nounicode} wikEdDiffMark wikEdDiffMark{number}"' +
-                'title="{title}" id="wikEdDiffMark{number}"' +
-                'onmouseover="wikEdDiffBlockHandler(undefined, this, \'mouseover\');"></span>',
-
-        'markRight':
-                '<span class="wikEdDiffMarkRight{nounicode}"' +
-                'title="{title}" id="wikEdDiffMark{number}"' +
-                'onmouseover="wikEdDiffBlockHandler(undefined, this, \'mouseover\');"></span>',
-        'markRightColored':
-                '<span class="wikEdDiffMarkRight{nounicode} wikEdDiffMark wikEdDiffMark{number}"' +
-                'title="{title}" id="wikEdDiffMark{number}"' +
-                'onmouseover="wikEdDiffBlockHandler(undefined, this, \'mouseover\');"></span>',
-
-        'newline': '<span class="wikEdDiffNewline">\n</span>',
-        'tab': '<span class="wikEdDiffTab"><span class="wikEdDiffTabSymbol"></span>\t</span>',
-        'space': '<span class="wikEdDiffSpace"><span class="wikEdDiffSpaceSymbol"></span> </span>',
-
-        'omittedChars': '<span class="wikEdDiffOmittedChars">…</span>',
-
-        'errorStart': '<div class="wikEdDiffError" title="Error: diff not consistent with versions!">',
-        'errorEnd': '</div>'
     })

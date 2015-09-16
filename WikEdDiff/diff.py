@@ -191,23 +191,16 @@ class WikEdDiff:
         # @var array recursionTimer Count time spent in recursion level in milliseconds.
         self.recursionTimer = {}
 
-        # Output data.
-
-        # @var bool error Unit tests have detected a diff error
-        self.error = False
-
-        # @var array fragments Diff fragment list for markup, abstraction layer for customization
-        self.fragments = []
-
 
     ##
-    ## Main diff method.
+    ## Main diff method producing a list of fragments ready for markup,
+    ## which serves as an abstraction layer for diffs.
     ##
     ## @param string oldString Old text version
     ## @param string newString New text version
-    ## @param[out] array fragment
-    ##   Diff fragment list ready for markup, abstraction layer for customized diffs
-    ## @return string Html code of diff
+    ## @return tuple (error, fragments), where:
+    ##   bool error: When True, unit tests have detected a diff error
+    ##   array fragments: A list of Fragment objects
     ##
     def diff( self, oldString, newString ):
 
@@ -216,9 +209,6 @@ class WikEdDiff:
             self.time( 'total' )
             # Start diff timer
             self.time( 'diff' )
-
-        # Reset error flag
-        self.error = False
 
         # Strip trailing newline (.js only)
         if self.config.stripTrailingNewline is True:
@@ -232,12 +222,13 @@ class WikEdDiff:
 
         # Trap trivial changes: no change
         if self.newText.text == self.oldText.text:
-            self.fragments.append( Fragment( text='', type='{', color=0 ) )
-            self.fragments.append( Fragment( text='', type='[', color=0 ) )
-            self.fragments.append( Fragment( text='', type='=', color=0 ) )
-            self.fragments.append( Fragment( text='', type=']', color=0 ) )
-            self.fragments.append( Fragment( text='', type='}', color=0 ) )
-            return self.getDiffHtml( self.fragments )
+            fragments = []
+            fragments.append( Fragment( text='', type='{', color=0 ) )
+            fragments.append( Fragment( text='', type='[', color=0 ) )
+            fragments.append( Fragment( text='', type='=', color=0 ) )
+            fragments.append( Fragment( text='', type=']', color=0 ) )
+            fragments.append( Fragment( text='', type='}', color=0 ) )
+            return self.getDiffHtml( fragments )
 
         # Split new and old text into paragraps
         if self.config.timer is True:
@@ -345,7 +336,7 @@ class WikEdDiff:
         self.oldText.tokens.clear()
 
         # Assemble blocks into fragment table
-        self.getDiffFragments()
+        fragments = self.getDiffFragments()
 
         # Free memory
         self.blocks.clear()
@@ -357,11 +348,12 @@ class WikEdDiff:
             self.timeEnd( 'diff' )
 
         # Unit tests
+        consistent = True
         if self.config.unitTesting is True:
             # Test diff to test consistency between input and output
             if self.config.timer is True:
                 self.time( 'unit tests' )
-            self.unitTests()
+            consistent = self.unitTests( self.oldText, self.newText, fragments )
             if self.config.timer is True:
                 self.timeEnd( 'unit tests' )
 
@@ -374,7 +366,7 @@ class WikEdDiff:
             # Clipping unchanged sections from unmoved block text
             if self.config.timer is True:
                 self.time( 'clip' )
-            self.clipDiffFragments()
+            self.clipDiffFragments( fragments )
             if self.config.timer is True:
                 self.timeEnd( 'clip' )
 
@@ -382,21 +374,11 @@ class WikEdDiff:
         if self.config.debug is True:
             self.debugFragments( 'Fragments' )
 
-        # Create html formatted diff code from diff fragments
-        if self.config.timer is True:
-            self.time( 'html' )
-        html = self.getDiffHtml( self.fragments )
-        if self.config.timer is True:
-            self.timeEnd( 'html' )
-
-        # Free memory
-        self.fragments.clear()
-
         # Stop total timer
         if self.config.timer is True:
             self.timeEnd( 'total' )
 
-        return html
+        return (not consistent, fragments)
 
 
     ##
@@ -2026,13 +2008,13 @@ class WikEdDiff:
     ##
     ## @param[in] array groups Groups table object
     ## @param[in] array blocks Blocks table object
-    ## @param[out] array fragments Fragments array, abstraction layer for diff code
+    ## @return array Fragments array, abstraction layer for diff code
     ##
     def getDiffFragments(self):
 
         blocks = self.blocks
         groups = self.groups
-        fragments = self.fragments
+        fragments = []
 
         # Make shallow copy of groups and sort by blockStart
         groupsSort = sorted(groups, key=lambda group: group.blockStart)
@@ -2119,6 +2101,8 @@ class WikEdDiff:
         fragments.append(    Fragment( text='', type=']', color=0 ) )
         fragments.append(    Fragment( text='', type='}', color=0 ) )
 
+        return fragments
+
 
     ##
     ## Clip unchanged sections from unmoved block text.
@@ -2128,9 +2112,7 @@ class WikEdDiff:
     ##
     ## @param[in/out] array fragments Fragments array, abstraction layer for diff code
     ##
-    def clipDiffFragments(self):
-
-        fragments = self.fragments
+    def clipDiffFragments( self, fragments ):
 
         # Skip if only one fragment in containers, no change
         if len(fragments) == 5:
@@ -2430,233 +2412,6 @@ class WikEdDiff:
 
 
     ##
-    ## Create html formatted diff code from diff fragments.
-    ##
-    ## @param array fragments Fragments array, abstraction layer for diff code
-    ## @return string Html code of diff
-    ##
-    def getDiffHtml( self, fragments ):
-
-        # No change, only one unchanged block in containers
-        if len(fragments) == 5 and fragments[2].type == '=':
-            return self.config.htmlCode.containerStart + \
-                   self.config.htmlCode.noChangeStart + \
-                   self.htmlEscape( self.config.msg['wiked-diff-empty'] ) + \
-                   self.config.htmlCode.noChangeEnd + \
-                   self.config.htmlCode.containerEnd
-
-        # Cycle through fragments
-        htmlFragments = []
-        for fragment in fragments:
-            text = fragment.text
-            type = fragment.type
-            color = fragment.color
-            html = ''
-
-            # Test if text is blanks-only or a single character
-            blank = False
-            if text != '':
-                blank = self.config.regExp.blankBlock.search( text )
-
-            # Add container start markup
-            if type == '{':
-                html = self.config.htmlCode.containerStart
-            # Add container end markup
-            elif type == '}':
-                html = self.config.htmlCode.containerEnd
-
-            # Add fragment start markup
-            if type == '[':
-                html = self.config.htmlCode.fragmentStart
-            # Add fragment end markup
-            elif type == ']':
-                html = self.config.htmlCode.fragmentEnd
-            # Add fragment separator markup
-            elif type == ',':
-                html = self.config.htmlCode.separator
-
-            # Add omission markup
-            if type == '~':
-                html = self.config.htmlCode.omittedChars
-
-            # Add omission markup
-            if type == ' ~':
-                html = ' ' + self.config.htmlCode.omittedChars
-
-            # Add omission markup
-            if type == '~ ':
-                html = self.config.htmlCode.omittedChars + ' '
-            # Add colored left-pointing block start markup
-            elif type == '(<':
-                # Get title
-                if self.config.noUnicodeSymbols is True:
-                    title = self.config.msg['wiked-diff-block-left-nounicode']
-                else:
-                    title = self.config.msg['wiked-diff-block-left']
-
-                # Get html
-                if self.config.coloredBlocks is True:
-                    html = self.config.htmlCode.blockColoredStart
-                else:
-                    html = self.config.htmlCode.blockStart
-                html = self.htmlCustomize( html, color, title )
-
-            # Add colored right-pointing block start markup
-            elif type == '(>':
-                # Get title
-                if self.config.noUnicodeSymbols is True:
-                    title = self.config.msg['wiked-diff-block-right-nounicode']
-                else:
-                    title = self.config.msg['wiked-diff-block-right']
-
-                # Get html
-                if self.config.coloredBlocks is True:
-                    html = self.config.htmlCode.blockColoredStart
-                else:
-                    html = self.config.htmlCode.blockStart
-                html = self.htmlCustomize( html, color, title )
-
-            # Add colored block end markup
-            elif type == ' )':
-                html = self.config.htmlCode.blockEnd
-
-            # Add '=' (unchanged) text and moved block
-            if type == '=':
-                text = self.htmlEscape( text )
-                if color != 0:
-                    html = self.markupBlanks( text, True )
-                else:
-                    html = self.markupBlanks( text )
-
-            # Add '-' text
-            elif type == '-':
-                text = self.htmlEscape( text )
-                text = self.markupBlanks( text, True )
-                if blank is True:
-                    html = self.config.htmlCode.deleteStartBlank
-                else:
-                    html = self.config.htmlCode.deleteStart
-                html += text + self.config.htmlCode.deleteEnd
-
-            # Add '+' text
-            elif type == '+':
-                text = self.htmlEscape( text )
-                text = self.markupBlanks( text, True )
-                if blank is True:
-                    html = self.config.htmlCode.insertStartBlank
-                else:
-                    html = self.config.htmlCode.insertStart
-                html += text + self.config.htmlCode.insertEnd
-
-            # Add '<' and '>' code
-            elif type == '<' or type == '>':
-                # Display as deletion at original position
-                if self.config.showBlockMoves is False:
-                    text = self.htmlEscape( text )
-                    text = self.markupBlanks( text, True )
-                    if blank is True:
-                        html = self.config.htmlCode.deleteStartBlank + \
-                               text + \
-                               self.config.htmlCode.deleteEnd
-                    else:
-                        html = self.config.htmlCode.deleteStart + text + self.config.htmlCode.deleteEnd
-
-                # Display as mark
-                else:
-                    if type == '<':
-                        if self.config.coloredBlocks is True:
-                            html = self.htmlCustomize( self.config.htmlCode.markLeftColored, color, text )
-                        else:
-                            html = self.htmlCustomize( self.config.htmlCode.markLeft, color, text )
-                    else:
-                        if self.config.coloredBlocks is True:
-                            html = self.htmlCustomize( self.config.htmlCode.markRightColored, color, text )
-                        else:
-                            html = self.htmlCustomize( self.config.htmlCode.markRight, color, text )
-
-            htmlFragments.append( html )
-
-        # Join fragments
-        html = "".join(htmlFragments)
-
-        # Add error indicator
-        if self.error is True:
-            html = self.config.htmlCode.errorStart + html + self.config.htmlCode.errorEnd
-
-        return html
-
-
-    ##
-    ## Customize html code fragments.
-    ## Replaces:
-    ##   {number}:    class/color/block/mark/id number
-    ##   {title}:     title attribute (popup)
-    ##   {nounicode}: noUnicodeSymbols fallback
-    ##   input: html, number: block number, title: title attribute (popup) text
-    ##
-    ## @param string html Html code to be customized
-    ## @return string Customized html code
-    ##
-    def htmlCustomize( self, html, number, title=None ):
-
-        # Replace {number} with class/color/block/mark/id number
-        html = html.replace("{number}", str(number))
-
-        # Replace {nounicode} with wikEdDiffNoUnicode class name
-        if self.config.noUnicodeSymbols is True:
-            html = html.replace("{nounicode}", ' wikEdDiffNoUnicode')
-        else:
-            html = html.replace("{nounicode}", '')
-
-        # Shorten title text, replace {title}
-        if title != None:
-            max = 512
-            end = 128
-            gapMark = ' [...] '
-            if len(title) > max:
-                title = title[ : max - len(gapMark) - end ] + \
-                        gapMark + \
-                        title[ len(title) - end : ]
-            title = self.htmlEscape( title )
-            title = title.replace("\t", '&nbsp;&nbsp;')
-            title = title.replace("  ", '&nbsp;&nbsp;')
-            html = html.replace("{title}", title)
-
-        return html
-
-
-    ##
-    ## Replace html-sensitive characters in output text with character entities.
-    ##
-    ## @param string html Html code to be escaped
-    ## @return string Escaped html code
-    ##
-    def htmlEscape( self, html ):
-
-        html = html.replace("&", '&amp;')
-        html = html.replace("<", '&lt;')
-        html = html.replace(">", '&gt;')
-        html = html.replace('"', '&quot;')
-        return html
-
-
-    ##
-    ## Markup tabs, newlines, and spaces in diff fragment text.
-    ##
-    ## @param bool highlight Highlight newlines and spaces in addition to tabs
-    ## @param string html Text code to be marked-up
-    ## @return string Marked-up text
-    ##
-    def markupBlanks( self, html, highlight=False ):
-
-        if highlight is True:
-            html = html.replace(" ", self.config.htmlCode.space)
-            html = html.replace("\n", self.config.htmlCode.newline)
-        html = html.replace("\t", self.config.htmlCode.tab)
-        return html
-
-
-    ##
     ## Count real words in text.
     ##
     ## @param string text Text for word counting
@@ -2718,34 +2473,39 @@ class WikEdDiff:
     ## Test diff code for consistency with input versions.
     ## Prints results to debug console.
     ##
-    ## @param[in] WikEdDiffText newText, oldText Text objects
+    ## @param WikEdDiffText oldText, newText Text objects
+    ## @param array fragments Fragments array, abstraction layer for diff code
+    ## @return bool True if tests passed
     ##
-    def unitTests(self):
+    def unitTests( self, oldText, newText, fragments ):
+
+        consistent = True
 
         # Check if output is consistent with new text
-        diff = self.getDiffPlainText( self.fragments, 'new' )
-        if diff != self.newText.text:
+        diff = self.getDiffPlainText( fragments, 'new' )
+        if diff != newText.text:
             logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with new text version!'
             )
-            self.error = True
+            consistent = False
             logger.debug( 'new text:\n' + text )
             logger.debug( 'new diff:\n' + diff )
         else:
             logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with new text.' )
 
         # Check if output is consistent with old text
-        diff = self.getDiffPlainText( self.fragments, 'old' )
-        if diff != self.oldText.text:
+        diff = self.getDiffPlainText( fragments, 'old' )
+        if diff != oldText.text:
             logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with old text version!'
             )
-            self.error = True
+            consistent = False
             logger.debug( 'old text:\n' + text )
             logger.debug( 'old diff:\n' + diff )
         else:
             logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with old text.' )
 
+        return consistent
 
     ##
     ## Dump blocks object to logger.
@@ -2791,11 +2551,10 @@ class WikEdDiff:
     ## Dump fragments array to logger.
     ##
     ## @param string name Fragments name
-    ## @param[in] array fragments Fragments array
+    ## @param array fragments Fragments array
     ##
-    def debugFragments( self, name ):
+    def debugFragments( self, name, fragments ):
 
-        fragments = self.fragments
         dump = "\n" + "\t".join(["i", "type", "color", "text"]) + "\n"
         for i, fragment in enumerate(fragments):
             dump += "\t".join(map(str, [i, fragment.type, fragment.color,
@@ -3110,144 +2869,18 @@ if __name__ == "__main__":
     f2 = open(sys.argv[2], "r")
 
     from config import *
+    from HtmlFormatter import *
 
     config = WikEdDiffConfig()
     wd = WikEdDiff(config)
-    html = wd.diff(f1.read(), f2.read())
+    error, fragments = wd.diff(f1.read(), f2.read())
 
-    template = """
-<?xml version="1.0" encoding="UTF-8"?>
-<!doctype html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>{title}</title>
-<script id="wikEdDiffBlockHandler">
-{script}
-</script>
-<style type="text/css" id="wikEdDiffStyles">
-{stylesheet}
-</style>
-</head>
-<body>
-{diff}
-</body>
-</html>
-"""
+    # Create HTML formatted diff code from diff fragments
+    formatter = HtmlFormatter()
+    diff_html = formatter.getDiffHtml( fragments, error, coloredBlocks=True )
 
-    javascript = """
-var wikEdDiffBlockHandler = function ( event, element, type ) {
-
-        // IE compatibility
-        if ( event === undefined && window.event !== undefined ) {
-                event = window.event;
-        }
-
-        // Get mark/block elements
-        var number = element.id.replace( /\D/g, '' );
-        var block = document.getElementById( 'wikEdDiffBlock' + number );
-        var mark = document.getElementById( 'wikEdDiffMark' + number );
-        if ( block === null || mark === null ) {
-                return;
-        }
-
-        // Highlight corresponding mark/block pairs
-        if ( type === 'mouseover' ) {
-                element.onmouseover = null;
-                element.onmouseout = function ( event ) {
-                        window.wikEdDiffBlockHandler( event, element, 'mouseout' );
-                };
-                element.onclick = function ( event ) {
-                        window.wikEdDiffBlockHandler( event, element, 'click' );
-                };
-                block.className += ' wikEdDiffBlockHighlight';
-                mark.className += ' wikEdDiffMarkHighlight';
-        }
-
-        // Remove mark/block highlighting
-        if ( type === 'mouseout' || type === 'click' ) {
-                element.onmouseout = null;
-                element.onmouseover = function ( event ) {
-                        window.wikEdDiffBlockHandler( event, element, 'mouseover' );
-                };
-
-                // Reset, allow outside container (e.g. legend)
-                if ( type !== 'click' ) {
-                        block.className = block.className.replace( / wikEdDiffBlockHighlight/g, '' );
-                        mark.className = mark.className.replace( / wikEdDiffMarkHighlight/g, '' );
-
-                        // GetElementsByClassName
-                        var container = document.getElementById( 'wikEdDiffContainer' );
-                        if ( container !== null ) {
-                                var spans = container.getElementsByTagName( 'span' );
-                                var spansLength = spans.length;
-                                for ( var i = 0; i < spansLength; i ++ ) {
-                                        if ( spans[i] !== block && spans[i] !== mark ) {
-                                                if ( spans[i].className.indexOf( ' wikEdDiffBlockHighlight' ) !== -1 ) {
-                                                        spans[i].className = spans[i].className.replace( / wikEdDiffBlockHighlight/g, '' );
-                                                }
-                                                else if ( spans[i].className.indexOf( ' wikEdDiffMarkHighlight') !== -1 ) {
-                                                        spans[i].className = spans[i].className.replace( / wikEdDiffMarkHighlight/g, '' );
-                                                }
-                                        }
-                                }
-                        }
-                }
-        }
-
-        // Scroll to corresponding mark/block element
-        if ( type === 'click' ) {
-
-                // Get corresponding element
-                var corrElement;
-                if ( element === block ) {
-                        corrElement = mark;
-                }
-                else {
-                        corrElement = block;
-                }
-
-                // Get element height (getOffsetTop)
-                var corrElementPos = 0;
-                var node = corrElement;
-                do {
-                        corrElementPos += node.offsetTop;
-                } while ( ( node = node.offsetParent ) !== null );
-
-                // Get scroll height
-                var top;
-                if ( window.pageYOffset !== undefined ) {
-                        top = window.pageYOffset;
-                }
-                else {
-                        top = document.documentElement.scrollTop;
-                }
-
-                // Get cursor pos
-                var cursor;
-                if ( event.pageY !== undefined ) {
-                        cursor = event.pageY;
-                }
-                else if ( event.clientY !== undefined ) {
-                        cursor = event.clientY + top;
-                }
-
-                // Get line height
-                var line = 12;
-                if ( window.getComputedStyle !== undefined ) {
-                        line = parseInt( window.getComputedStyle( corrElement ).getPropertyValue( 'line-height' ) );
-                }
-
-                // Scroll element under mouse cursor
-                window.scroll( 0, corrElementPos + top - cursor + line / 2 );
-        }
-        return;
-};
-"""
-
-    # Replace mark symbols
-    stylesheet = config.stylesheet.replace("{cssMarkLeft}", config.cssMarkLeft) \
-                                  .replace("{cssMarkRight}", config.cssMarkRight)
+    # Create standalone HTML page
+    full_html = formatter.fullHtmlTemplate.format(title=sys.argv[2], script=formatter.javascript, stylesheet=formatter.stylesheet, diff=diff_html)
 
     out = open("output.html", "w")
-    out.write(template.format(title=sys.argv[2], script=javascript, stylesheet=stylesheet, diff=html))
+    out.write(full_html)

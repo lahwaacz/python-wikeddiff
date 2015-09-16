@@ -385,6 +385,9 @@ class WikEdDiff:
         if self.config.debug is True:
             self.debugFragments( 'Fragments' )
 
+        if self.error is True:
+            logger.error(self.config.msg["wiked-diff-error"])
+
         # Create html formatted diff code from diff fragments
         if self.config.timer is True:
             self.time( 'html' )
@@ -394,11 +397,6 @@ class WikEdDiff:
 
         # Free memory
         self.fragments.clear()
-
-        # Add error indicator
-        if self.error is True:
-            html = self.config.htmlCode.errorStart + html + self.config.htmlCode.errorEnd
-            logger.error("The error flag is True")
 
         # Stop total timer
         if self.config.timer is True:
@@ -2606,7 +2604,13 @@ class WikEdDiff:
             htmlFragments.append( html )
 
         # Join fragments
-        return "".join(htmlFragments)
+        html = "".join(htmlFragments)
+
+        # Add error indicator
+        if self.error is True:
+            html = self.config.htmlCode.errorStart + html + self.config.htmlCode.errorEnd
+
+        return html
 
 
     ##

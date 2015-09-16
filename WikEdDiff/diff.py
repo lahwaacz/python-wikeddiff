@@ -2871,27 +2871,6 @@ class WikEdDiff:
         self.recursionTimer.clear()
 
 
-    ##
-    ## Recursive deep copy from target over source for customization import.
-    ##
-    ## @param object source Source object
-    ## @param object target Target object
-    ##
-    @staticmethod
-    def deepCopy( source, target ):
-        if not isinstance(source, dict) or not isinstance(target, dict):
-            raise TypeError("both 'source' and 'destination' must be of type 'dict'")
-        for key, value in source.items():
-            if isinstance(value, dict):
-                node = target.setdefault(key, {})
-                self.deepCopy(value, node)
-            elif isinstance(value, list):
-                node = target.setdefault(key, [])
-                node.extend(value)
-            else:
-                target[key] = value
-
-
 ##
 ## Data and methods for single text version (old or new one).
 ##

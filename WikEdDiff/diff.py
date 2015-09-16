@@ -201,9 +201,6 @@ class WikEdDiff:
         # @var array fragments Diff fragment list for markup, abstraction layer for customization
         self.fragments = []
 
-        # @var string html Html code of diff
-        self.html = ''
-
 
     ##
     ## Main diff method.
@@ -238,34 +235,12 @@ class WikEdDiff:
 
         # Trap trivial changes: no change
         if self.newText.text == self.oldText.text:
-            self.html = self.config.htmlCode.containerStart + \
-                        self.config.htmlCode.noChangeStart + \
-                        self.htmlEscape( self.config.msg['wiked-diff-empty'] ) + \
-                        self.config.htmlCode.noChangeEnd + \
-                        self.config.htmlCode.containerEnd
-            return self.html
-
-        # Trap trivial changes: old text deleted
-        if self.oldText.text == '' or ( self.oldText.text == '\n' and self.newText.text[ len(self.newText.text) - 1 ] == '\n' ):
-            self.html = self.config.htmlCode.containerStart + \
-                        self.config.htmlCode.fragmentStart + \
-                        self.config.htmlCode.insertStart + \
-                        self.htmlEscape( self.newText.text ) + \
-                        self.config.htmlCode.insertEnd + \
-                        self.config.htmlCode.fragmentEnd + \
-                        self.config.htmlCode.containerEnd
-            return self.html
-
-        # Trap trivial changes: new text deleted
-        if self.newText.text == '' or ( self.newText.text == '\n' and self.oldText.text[ len(self.oldText.text) - 1 ] == '\n' ):
-            self.html = self.config.htmlCode.containerStart + \
-                        self.config.htmlCode.fragmentStart + \
-                        self.config.htmlCode.deleteStart + \
-                        self.htmlEscape( self.oldText.text ) + \
-                        self.config.htmlCode.deleteEnd + \
-                        self.config.htmlCode.fragmentEnd + \
-                        self.config.htmlCode.containerEnd
-            return self.html
+            self.fragments.append( Fragment( text='', type='{', color=0 ) )
+            self.fragments.append( Fragment( text='', type='[', color=0 ) )
+            self.fragments.append( Fragment( text='', type='=', color=0 ) )
+            self.fragments.append( Fragment( text='', type=']', color=0 ) )
+            self.fragments.append( Fragment( text='', type='}', color=0 ) )
+            return self.getDiffHtml( self.fragments )
 
         # Split new and old text into paragraps
         if self.config.timer is True:
@@ -413,31 +388,23 @@ class WikEdDiff:
         # Create html formatted diff code from diff fragments
         if self.config.timer is True:
             self.time( 'html' )
-        self.getDiffHtml()
+        html = self.getDiffHtml( self.fragments )
         if self.config.timer is True:
             self.timeEnd( 'html' )
 
         # Free memory
         self.fragments.clear()
 
-        # No change
-        if self.html == '':
-            self.html = self.config.htmlCode.containerStart + \
-                        self.config.htmlCode.noChangeStart + \
-                        self.htmlEscape( self.config.msg['wiked-diff-empty'] ) + \
-                        self.config.htmlCode.noChangeEnd + \
-                        self.config.htmlCode.containerEnd
-
         # Add error indicator
         if self.error is True:
-            self.html = self.config.htmlCode.errorStart + self.html + self.config.htmlCode.errorEnd
+            html = self.config.htmlCode.errorStart + html + self.config.htmlCode.errorEnd
             logger.error("The error flag is True")
 
         # Stop total timer
         if self.config.timer is True:
             self.timeEnd( 'total' )
 
-        return self.html
+        return html
 
 
     ##
@@ -2473,19 +2440,20 @@ class WikEdDiff:
     ##
     ## Create html formatted diff code from diff fragments.
     ##
-    ## @param[in] array fragments Fragments array, abstraction layer for diff code
+    ## @param array fragments Fragments array, abstraction layer for diff code
     ## @param string|undefined version
     ##   Output version: 'new' or 'old': only text from new or old version, used for unit tests
-    ## @param[out] string html Html code of diff
+    ## @return string html Html code of diff
     ##
-    def getDiffHtml( self, version=None ):
-
-        fragments = self.fragments
+    def getDiffHtml( self, fragments, version=None ):
 
         # No change, only one unchanged block in containers
         if len(fragments) == 5 and fragments[2].type == '=':
-            self.html = ''
-            return
+            return self.config.htmlCode.containerStart + \
+                   self.config.htmlCode.noChangeStart + \
+                   self.htmlEscape( self.config.msg['wiked-diff-empty'] ) + \
+                   self.config.htmlCode.noChangeEnd + \
+                   self.config.htmlCode.containerEnd
 
         # Cycle through fragments
         htmlFragments = []
@@ -2638,7 +2606,7 @@ class WikEdDiff:
             htmlFragments.append( html )
 
         # Join fragments
-        self.html = "".join(htmlFragments)
+        return "".join(htmlFragments)
 
 
     ##
@@ -2731,8 +2699,8 @@ class WikEdDiff:
     def unitTests(self):
 
         # Check if output is consistent with new text
-        self.getDiffHtml( 'new' )
-        diff = re.sub("<[^>]*>", "", self.html)
+        html = self.getDiffHtml( self.fragments, 'new' )
+        diff = re.sub("<[^>]*>", "", html)
         text = self.htmlEscape( self.newText.text )
         if diff != text:
             logger.debug(
@@ -2745,8 +2713,8 @@ class WikEdDiff:
             logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with new text.' )
 
         # Check if output is consistent with old text
-        self.getDiffHtml( 'old' )
-        diff = re.sub("<[^>]*>", "", self.html)
+        html = self.getDiffHtml( self.fragments, 'old' )
+        diff = re.sub("<[^>]*>", "", html)
         text = self.htmlEscape( self.oldText.text )
         if diff != text:
             logger.debug(

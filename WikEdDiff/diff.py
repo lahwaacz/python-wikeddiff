@@ -228,7 +228,7 @@ class WikEdDiff:
 
         # Strip trailing newline (.js only)
         if self.config.stripTrailingNewline is True:
-            if newString[ -1 ] == '\n' and oldString[ -1 ] == '\n':
+            if newString.endswith('\n') and oldString.endswith('\n'):
                 newString = newString[:-1]
                 oldString = oldString[:-1]
 

@@ -399,7 +399,7 @@ var wikEdDiffBlockHandler = function ( event, element, type ) {
             # Test if text is blanks-only or a single character
             blank = False
             if text != '':
-                blank = self.blankBlock.search( text )
+                blank = self.blankBlock.search( text ) is not None
 
             # Add container start markup
             if type == '{':

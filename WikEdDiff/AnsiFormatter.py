@@ -79,7 +79,7 @@ class AnsiFormatter:
             # Test if text is blanks-only or a single character
             blank = False
             if text != '':
-                blank = self.blankBlock.search( text )
+                blank = self.blankBlock.search( text ) is not None
 
             # Add container start markup
             if type == '{':
@@ -268,7 +268,7 @@ class AnsiFormatter:
         return self.pushColor(self.color_insert)
     @property
     def insertStartBlank(self):
-        return self.pushColor(self.color_insert)
+        return self.pushColor(fg=0, bg=self.color_insert)
     @property
     def insertEnd(self):
         return self.popColor()
@@ -278,7 +278,7 @@ class AnsiFormatter:
         return self.pushColor(self.color_delete)
     @property
     def deleteStartBlank(self):
-        return self.pushColor(self.color_delete)
+        return self.pushColor(fg=0, bg=self.color_delete)
     @property
     def deleteEnd(self):
         return self.popColor()

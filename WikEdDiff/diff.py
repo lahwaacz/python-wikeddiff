@@ -45,7 +45,13 @@ Additional features:
  - Clipping of unchanged irrelevant parts from the output (optional)
  - Fully customizable
  - Text split optimized for MediaWiki source texts
- - Well commented and documented code
+
+Notable differences between the Python port and the original JavaScript version:
+
+ - The HTML formatter has been split from the main `WikEdDiff` class into a
+   separate submodule, along with corresponding settings from the
+   `WikEdDiffConfig` class.
+ - Added an ANSI color formatter and a console demo script (`diff.py`).
 
 Datastructures (abbreviations from publication):
 
@@ -67,12 +73,9 @@ class WikEdDiff:      diff object
   .config[]:            configuration settings, see top of code for customization options
      .regExp[]:            all regular expressions
          .split             regular expressions used for splitting text into tokens
-     .htmlCode            HTML code fragments used for creating the output
-     .msg                 output messages
   .newText              new text
   .oldText              old text
   .maxWords             word count of longest linked block
-  .html                 diff html
   .error                flag: result has not passed unit tests
   .bordersDown[]        linked region borders downwards, [new index, old index]
   .bordersUp[]          linked region borders upwards, [new index, old index]

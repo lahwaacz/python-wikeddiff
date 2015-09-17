@@ -65,7 +65,7 @@ class WikEdDiffConfig:
 
     ##
     ## @var bool config.stripTrailingNewline
-    ##   Strip trailing newline off of texts (True in .js, False in .php)
+    ##   Strip trailing newline off of texts (True)
     ##
     stripTrailingNewline = True
 

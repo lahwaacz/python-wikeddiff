@@ -236,7 +236,7 @@ class WikEdDiff:
             fragments.append( Fragment( text='', type='=', color=0 ) )
             fragments.append( Fragment( text='', type=']', color=0 ) )
             fragments.append( Fragment( text='', type='}', color=0 ) )
-            return self.getDiffHtml( fragments )
+            return fragments
 
         # Split new and old text into paragraps
         if self.config.timer is True:

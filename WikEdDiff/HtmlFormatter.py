@@ -369,7 +369,7 @@ var wikEdDiffBlockHandler = function ( event, element, type ) {
     ##   Enable block move layout with highlighted blocks and marks at the original positions (True)
     ## @param bool coloredBlocks
     ##   Display blocks in differing colors (rainbow color scheme) (False)
-    ## @param bool coloredBlocks
+    ## @param bool noUnicodeSymbols
     ##   Do not use UniCode block move marks (legacy browsers) (False)
     ## @return string Html code of diff
     ##
@@ -508,14 +508,15 @@ var wikEdDiffBlockHandler = function ( event, element, type ) {
                 else:
                     if type == '<':
                         if coloredBlocks is True:
-                            html = self.htmlCustomize( self.htmlCode.markLeftColored, color, text, noUnicodeSymbols )
+                            html = self.htmlCode.markLeftColored
                         else:
-                            html = self.htmlCustomize( self.htmlCode.markLeft, color, text, noUnicodeSymbols )
+                            html = self.htmlCode.markLeft
                     else:
                         if coloredBlocks is True:
-                            html = self.htmlCustomize( self.htmlCode.markRightColored, color, text, noUnicodeSymbols )
+                            html = self.htmlCode.markRightColored
                         else:
-                            html = self.htmlCustomize( self.htmlCode.markRight, color, text, noUnicodeSymbols )
+                            html = self.htmlCode.markRight
+                    html = self.htmlCustomize( html, color, text, noUnicodeSymbols )
 
             htmlFragments.append( html )
 

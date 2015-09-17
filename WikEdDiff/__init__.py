@@ -3,3 +3,4 @@
 from .config import *
 from .diff import *
 from .HtmlFormatter import *
+from .AnsiFormatter import *

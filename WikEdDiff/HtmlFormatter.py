@@ -364,21 +364,21 @@ var wikEdDiffBlockHandler = function ( event, element, type ) {
     ## Main formatter method which creates HTML formatted diff code from diff fragments.
     ##
     ## @param array fragments Fragments array, abstraction layer for diff code
-    ## @param bool error Whether to add an error indicator to mark diff as inconsistent (False)
     ## @param bool showBlockMoves
     ##   Enable block move layout with highlighted blocks and marks at the original positions (True)
     ## @param bool coloredBlocks
     ##   Display blocks in differing colors (rainbow color scheme) (False)
     ## @param bool noUnicodeSymbols
     ##   Do not use UniCode block move marks (legacy browsers) (False)
+    ## @param bool error Whether to add an error indicator to mark diff as inconsistent (False)
     ## @return string Html code of diff
     ##
-    def getDiffHtml( self,
-                     fragments,
-                     error=False,
-                     showBlockMoves=True,
-                     coloredBlocks=False,
-                     noUnicodeSymbols=False ):
+    def format( self,
+                fragments,
+                showBlockMoves=True,
+                coloredBlocks=False,
+                noUnicodeSymbols=False,
+                error=False ):
 
         # No change, only one unchanged block in containers
         if len(fragments) == 5 and fragments[2].type == '=':

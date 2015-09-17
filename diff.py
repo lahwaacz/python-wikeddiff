@@ -33,11 +33,11 @@ if __name__ == "__main__":
 
     config = WikEdDiffConfig()
     wd = WikEdDiff(config)
-    error, fragments = wd.diff(f1.read(), f2.read())
+    fragments = wd.diff(f1.read(), f2.read())
 
     # Create HTML formatted diff code from diff fragments
     formatter = HtmlFormatter()
-    diff_html = formatter.getDiffHtml( fragments, error, coloredBlocks=True )
+    diff_html = formatter.format( fragments, coloredBlocks=True, error=wd.error )
 
     # Create standalone HTML page
     full_html = formatter.fullHtmlTemplate.format(title=sys.argv[2], script=formatter.javascript, stylesheet=formatter.stylesheet, diff=diff_html)

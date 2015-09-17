@@ -193,6 +193,11 @@ class WikEdDiff:
         # @var array recursionTimer Count time spent in recursion level in milliseconds.
         self.recursionTimer = {}
 
+        # Output data.
+
+        # @var bool error Unit tests have detected a diff error
+        self.error = False
+
 
     ##
     ## Main diff method producing a list of fragments ready for markup,
@@ -200,9 +205,7 @@ class WikEdDiff:
     ##
     ## @param string oldString Old text version
     ## @param string newString New text version
-    ## @return tuple (error, fragments), where:
-    ##   bool error: When True, unit tests have detected a diff error
-    ##   array fragments: A list of Fragment objects
+    ## @return array fragments: A list of Fragment objects
     ##
     def diff( self, oldString, newString ):
 
@@ -211,6 +214,9 @@ class WikEdDiff:
             self.time( 'total' )
             # Start diff timer
             self.time( 'diff' )
+
+        # Reset error flag
+        self.error = False
 
         # Strip trailing newline (.js only)
         if self.config.stripTrailingNewline is True:
@@ -350,12 +356,11 @@ class WikEdDiff:
             self.timeEnd( 'diff' )
 
         # Unit tests
-        consistent = True
         if self.config.unitTesting is True:
             # Test diff to test consistency between input and output
             if self.config.timer is True:
                 self.time( 'unit tests' )
-            consistent = self.unitTests( self.oldText, self.newText, fragments )
+            self.unitTests( self.oldText, self.newText, fragments )
             if self.config.timer is True:
                 self.timeEnd( 'unit tests' )
 
@@ -380,7 +385,7 @@ class WikEdDiff:
         if self.config.timer is True:
             self.timeEnd( 'total' )
 
-        return (not consistent, fragments)
+        return fragments
 
 
     ##
@@ -2481,15 +2486,13 @@ class WikEdDiff:
     ##
     def unitTests( self, oldText, newText, fragments ):
 
-        consistent = True
-
         # Check if output is consistent with new text
         diff = self.getDiffPlainText( fragments, 'new' )
         if diff != newText.text:
             logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with new text version!'
             )
-            consistent = False
+            self.error = False
             logger.debug( 'new text:\n' + text )
             logger.debug( 'new diff:\n' + diff )
         else:
@@ -2501,7 +2504,7 @@ class WikEdDiff:
             logger.error(
                     'Error: wikEdDiff unit test failure: diff not consistent with old text version!'
             )
-            consistent = False
+            self.error = False
             logger.debug( 'old text:\n' + text )
             logger.debug( 'old diff:\n' + diff )
         else:

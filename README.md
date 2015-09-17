@@ -45,7 +45,7 @@ Notable differences between the Python port and the original JavaScript version:
 
 ## Installation
 
-TBA
+    pip install git+git://github.com/lahwaacz/python-wikeddiff.git
 
 ## License
 

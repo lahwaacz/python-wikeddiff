@@ -8,9 +8,8 @@ __all__ = ["HtmlFormatter"]
 
 class HtmlFormatter:
 
-# TODO: check this
     # RegExp detecting blank-only and single-char blocks
-    blankBlock = re.compile( "^([^\t\S]+|[^\t])$", re.MULTILINE )
+    blankBlock = re.compile( "^([^\t\S]+|[^\t])$"  )
 
     # Messages.
     msg = {

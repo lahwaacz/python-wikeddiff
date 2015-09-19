@@ -369,7 +369,7 @@ class WikEdDiff:
 
         # Debug log
         if self.config.debug is True:
-            self.debugFragments( 'Fragments before clipping' )
+            self.debugFragments( 'Fragments before clipping', fragments )
 
         # Clipping
         if self.config.fullDiff is False:
@@ -382,7 +382,7 @@ class WikEdDiff:
 
         # Debug log
         if self.config.debug is True:
-            self.debugFragments( 'Fragments' )
+            self.debugFragments( 'Fragments', fragments )
 
         # Stop total timer
         if self.config.timer is True:
@@ -2482,7 +2482,6 @@ class WikEdDiff:
     ##
     ## @param WikEdDiffText oldText, newText Text objects
     ## @param array fragments Fragments array, abstraction layer for diff code
-    ## @return bool True if tests passed
     ##
     def unitTests( self, oldText, newText, fragments ):
 
@@ -2509,8 +2508,6 @@ class WikEdDiff:
             logger.debug( 'old diff:\n' + diff )
         else:
             logger.debug( 'OK: wikEdDiff unit test passed: diff consistent with old text.' )
-
-        return consistent
 
     ##
     ## Dump blocks object to logger.

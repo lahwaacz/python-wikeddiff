@@ -473,10 +473,7 @@ class WikEdDiff:
                     token = self.newText.tokens[ gap.newFirst ].token
                     tokenFirst = self.oldText.tokens[ gap.oldFirst ].token
                     tokenLast = self.oldText.tokens[ gap.oldLast ].token
-                    if (
-                            token[ tokenFirst ] != 0 or
-                            token[ tokenLast ] != len(token) - len(tokenLast)
-                            ):
+                    if not token.startswith(tokenFirst) or not token.endswith(tokenLast):
                         continue
                 elif gap.oldTokens == 1 and gap.newTokens == 3:
                     token = self.oldText.tokens[ gap.oldFirst ].token

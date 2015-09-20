@@ -27,6 +27,7 @@ class AnsiFormatter:
     tab = "→"
     space = "·"
     omittedChars = "…"
+    separator_symbol = "~" * 64
 
     # Colors
     color_insert = 10
@@ -261,7 +262,9 @@ class AnsiFormatter:
         return ""
     @property
     def separator(self):
-        return self.pushColor(self.color_separator) + "\n@@@ --- @@@\n" + self.popColor()
+        return self.pushColor(self.color_separator) + \
+               "\n" + self.separator_symbol + "\n" + \
+               self.popColor()
 
     @property
     def insertStart(self):

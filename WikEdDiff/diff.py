@@ -853,22 +853,18 @@ class WikEdDiff:
                                 words = [match.group() for match in wordsGen]
 
                                 # Unique if longer than min block length
-                                wordsLength = len(words)
-                                if wordsLength >= self.config.blockMinLength:
+                                if len(words) >= self.config.blockMinLength:
                                     unique = True
 
                                 # Unique if it contains at least one unique word
                                 else:
-                                    for i in range(wordsLength):
-                                        word = words[i]
-# TODO how to replace Object. ... here?
-#                                        if (
-#                                                self.oldText.words[word] == 1 and
-#                                                self.newText.words[word] == 1 and
-#                                                Object.prototype.hasOwnProperty.call( self.oldText.words, word ) is True and
-#                                                Object.prototype.hasOwnProperty.call( self.newText.words, word ) is True
-#                                                ):
-                                        if self.oldText.words[word] == 1 and self.newText.words[word] == 1:
+                                    for word in words:
+                                        if (
+                                                word in self.oldText.words and
+                                                word in self.newText.words and
+                                                self.oldText.words[word] == 1 and
+                                                self.newText.words[word] == 1
+                                                ):
                                             unique = True
                                             break
 

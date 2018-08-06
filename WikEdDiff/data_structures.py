@@ -8,7 +8,8 @@ custom objects.
 See diff.py for documentation.
 """
 
-from namedlist import namedlist
+from __future__ import annotations
+from dataclasses import dataclass
 
 
 ##
@@ -16,80 +17,86 @@ from namedlist import namedlist
 ##
 ## @class Token
 ##
-Token = namedlist("Token", ["token",
-                            "prev",
-                            "next",
-                            "link",
-                            "number",
-                            "unique",
-                           ])
+@dataclass
+class Token:
+    token: str
+    prev: Token
+    next: Token
+    link: int
+    number: int
+    unique: bool
 
 ##
 ## Symbols table.
 ##
 ## @class Symbols
 ##
-Symbols = namedlist("Symbols", ["token",
-                                "hashTable",
-                                "linked",
-                               ])
+@dataclass
+class Symbols:
+    token: list
+    hashTable: dict
+    linked: bool
 
 ##
 ## Symbol element.
 ##
 ## @class Symbol
 ##
-Symbol = namedlist("Symbol", ["newCount",
-                              "oldCount",
-                              "newToken",
-                              "oldToken",
-                             ])
+@dataclass
+class Symbol:
+    newCount: int
+    oldCount: int
+    newToken: int
+    oldToken: Token
+
 
 ##
 ## Gap element.
 ##
 ## @class Gap
 ##
-Gap = namedlist("Gap", ["newFirst",
-                        "newLast",
-                        "newTokens",
-                        "oldFirst",
-                        "oldLast",
-                        "oldTokens",
-                        "charSplit",
-                       ])
+@dataclass
+class Gap:
+    newFirst: int
+    newLast: int
+    newTokens: int
+    oldFirst: int
+    oldLast: int
+    oldTokens: int
+    charSplit: bool
 
 ##
 ## Block element.
 ##
 ## @class Block
 ##
-Block = namedlist("Block", ["oldBlock",
-                            "newBlock",
-                            "oldNumber",
-                            "newNumber",
-                            "oldStart",
-                            "count",
-                            "unique",
-                            "words",
-                            "chars",
-                            "type",
-                            "section",
-                            "group",
-                            "fixed",
-                            "moved",
-                            "text",
-                           ], use_slots=False)
-# FIXME: use_slots=False should be removed (depends on https://bitbucket.org/ericvsmith/namedlist/issues/26/none-private-default-fields )
+@dataclass
+class Block:
+    oldBlock: int
+    newBlock: int
+    oldNumber: int
+    newNumber: int
+    oldStart: int
+    count: int
+    unique: bool
+    words: int
+    chars: int
+    type: str
+    section: int
+    group: int
+    fixed: bool
+    moved: bool
+    text: str
 
 ##
 ## Section element.
 ##
 ## @class Section
 ##
-Section = namedlist("Section", ["blockStart",
-                                "blockEnd",
-                               ])
+@dataclass
+class Section:
+    blockStart: int
+    blockEnd: int
 
 
 ##
@@ -97,17 +104,18 @@ Section = namedlist("Section", ["blockStart",
 ##
 ## @class Group
 ##
-Group = namedlist("Group", ["oldNumber",
-                            "blockStart",
-                            "blockEnd",
-                            "unique",
-                            "maxWords",
-                            "words",
-                            "chars",
-                            "fixed",
-                            "movedFrom",
-                            "color",
-                           ])
+@dataclass
+class Group:
+    oldNumber: int
+    blockStart: int
+    blockEnd: int
+    unique: bool
+    maxWords: int
+    words: int
+    chars: int
+    fixed: bool
+    movedFrom: int
+    color: int
 
 
 ##
@@ -115,12 +123,15 @@ Group = namedlist("Group", ["oldNumber",
 ##
 ## @class Fragment
 ##
-Fragment = namedlist("Fragment", ["text",
-                                  "color",
-                                  "type",
-                                 ])
+@dataclass
+class Fragment:
+    text: str
+    color: int
+    type: str
+
 
 # TODO
-CacheEntry = namedlist("CacheEntry", ["path",
-                                      "chars",
-                                     ])
+@dataclass
+class CacheEntry:
+    path: list
+    chars: int

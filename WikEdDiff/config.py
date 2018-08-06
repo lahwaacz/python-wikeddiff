@@ -91,7 +91,7 @@ class WikEdDiffConfig:
 
     # UniCode letter support for regexps
     # From http://xregexp.com/addons/unicode/unicode-base.js v1.0.0
-    regExpLetters = 'a-zA-Z0-9' + re.sub("(\w{4})", "\\u\g<1>",
+    regExpLetters = 'a-zA-Z0-9' + re.sub("(\w{4})", r"\\u\g<1>",
                     '00AA00B500BA00C0-00D600D8-00F600F8-02C102C6-02D102E0-02E402EC02EE0370-037403760377037A-' + \
                     '037D03860388-038A038C038E-03A103A3-03F503F7-0481048A-05270531-055605590561-058705D0-05EA' + \
                     '05F0-05F20620-064A066E066F0671-06D306D506E506E606EE06EF06FA-06FC06FF07100712-072F074D-' + \

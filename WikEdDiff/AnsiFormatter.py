@@ -137,36 +137,38 @@ class AnsiFormatter:
 
             # Add '-' text
             elif type == '-':
-                text = self.ansiEscape( text )
-                text = self.markupBlanks( text, True )
                 if blank is True:
                     markup = self.deleteStartBlank
                 else:
                     markup = self.deleteStart
+                # handle text after self.insertStartBlank or self.insertStart sets the color!
+                text = self.ansiEscape( text )
+                text = self.markupBlanks( text, True )
                 markup += text + self.deleteEnd
 
             # Add '+' text
             elif type == '+':
-                text = self.ansiEscape( text )
-                text = self.markupBlanks( text, True )
                 if blank is True:
                     markup = self.insertStartBlank
                 else:
                     markup = self.insertStart
+                # handle text after self.insertStartBlank or self.insertStart sets the color!
+                text = self.ansiEscape( text )
+                text = self.markupBlanks( text, True )
                 markup += text + self.insertEnd
 
             # Add '<' and '>' code
             elif type == '<' or type == '>':
                 # Display as deletion at original position
                 if showBlockMoves is False:
+                    if blank is True:
+                        markup = self.deleteStartBlank
+                    else:
+                        markup = self.deleteStart
+                    # handle text after self.insertStartBlank or self.insertStart sets the color!
                     text = self.ansiEscape( text )
                     text = self.markupBlanks( text, True )
-                    if blank is True:
-                        markup = self.deleteStartBlank + \
-                               text + \
-                               self.deleteEnd
-                    else:
-                        markup = self.deleteStart + text + self.deleteEnd
+                    markup += text + self.deleteEnd
 
                 # Display as mark
                 else:
@@ -204,7 +206,10 @@ class AnsiFormatter:
 
         if highlight is True:
             text = text.replace(" ", self.space)
-            text = text.replace("\n", self.newline)
+            # some terminals or pagers don't interpret colors across several lines
+            reset = "\033[0m"
+            color = self.color_stack[-1] if self.color_stack else reset
+            text = text.replace("\n", self.newline.replace("\n", reset + "\n" + color))
         text = text.replace("\t", self.tab)
         return text
 

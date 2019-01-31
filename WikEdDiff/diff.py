@@ -51,7 +51,7 @@ Notable differences between the Python port and the original JavaScript version:
  - The HTML formatter has been split from the main `WikEdDiff` class into a
    separate submodule, along with corresponding settings from the
    `WikEdDiffConfig` class.
- - Added an ANSI color formatter and a console demo script (`diff.py`).
+ - Added an ANSI color formatter and a console demo script (`wikeddiff`).
 
 Datastructures (abbreviations from publication):
 

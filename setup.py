@@ -9,6 +9,6 @@ setup(
     url="https://github.com/lahwaacz/python-wikeddiff",
     license="GPLv3",
     packages=["WikEdDiff"],
-    scripts=["diff.py"],
+    scripts=["wikeddiff"],
     install_requires=["namedlist"]
 )

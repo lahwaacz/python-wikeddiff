@@ -5,7 +5,7 @@ Main data structures used in the WikEdDiff class. In the original JavaScript
 code they were represented as plain tables, but in Python we need to create
 custom objects.
 
-See diff.py for documentation.
+See the wikeddiff script for documentation.
 """
 
 from __future__ import annotations

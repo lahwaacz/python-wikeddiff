@@ -2165,7 +2165,7 @@ class WikEdDiff:
             for regExpMatch in self.config.regExp.clipLine.finditer(text):
                 lines.append( regExpMatch.start() )
                 lastIndex = regExpMatch.end()
-            if lines[0] != 0:
+            if len(lines) == 0 or lines[0] != 0:
                 lines.insert( 0, 0 )
             if lastIndex != len(text):
                 lines.append(len(text))
